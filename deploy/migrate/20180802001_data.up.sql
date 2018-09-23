@@ -1,0 +1,2 @@
+INSERT INTO "devices" ("user_id", "device_id", "created_at", "updated_at", "device_state") VALUES ('10000000-0000-0000-0000-000000000001', '10000000-0000-0000-1000-000000000001', now(), now(), '1');
+INSERT INTO "devices" ("user_id", "device_id", "created_at", "updated_at", "device_state") VALUES ('10000000-0000-0000-0000-000000000002', '10000000-0000-0000-1000-000000000002', now(), now(), '1');

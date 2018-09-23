@@ -1,0 +1,327 @@
+syntax = "proto3";
+option go_package = "ngobrel";
+/*
+Ngobrel service
+Functions prefixed with Public are public methods. All protected methods will have the following variables exposed
+through metadata:
+
+  string myUserID, the UUID string of currently login userID
+  string myDeviceID, the UUID string of currently login deviceID
+
+  */
+service Ngobrel {
+
+    /**
+    Retrieves public keys associated with the requested userID
+    */
+//    rpc PublicGetKeys(PublicGetKeysRequest) returns (PublicGetKeysResponse) {}
+
+    /**
+    Puts public keys associated with currently logged in user
+    */
+//    rpc PutKeys(PutKeysRequest) returns (PutKeysResponse) {}
+    
+    /**
+    Sends message
+    */
+    rpc PutMessage(PutMessageRequest) returns (PutMessageResponse) {}
+    
+    /**
+    Gets messages for currently logged in deviceID
+    */
+    rpc GetMessages(GetMessagesRequest) returns (stream GetMessagesResponseItem) {}
+
+    /**
+    Uploads media file
+    */
+//    rpc UploadMedia(stream UploadMediaRequest) returns (UploadMediaResponse) {}
+    
+    /**
+    Gets media file
+    */
+//    rpc GetMedia(stream GetMediaRequest) returns(GetMediaResponse) {}
+
+    /**
+    Creates a new conversation, either a peer-to-peer or group conversation
+    */
+    rpc CreateConversation(CreateConversationRequest) returns (CreateConversationResponse) {}
+
+    /**
+    List available conversations for currently logged in userID
+    */
+    rpc ListConversations(ListConversationsRequest) returns (ListConversationsResponse) {}
+    
+    /**
+    Invite other people into a conversation
+    */
+//    rpc PutIntoConversation(PutIntoConversationRequest) returns (PutIntoConversationResponse) {}
+    
+    /**
+    Delete a conversation. For group conversation this means leaving the group.
+    */
+//    rpc DeleteConversation(DeleteConversationRequest) returns (DeleteConversationResponse) {}
+
+    /**
+    Gets the state of a particular message
+    */
+//    rpc GetMessageState(GetMessageStateRequest) returns (GetMessageStateResponse) {};
+
+    /**
+    Sets the state of a particular message
+    */
+//    rpc PutMessageState(PutMessageStateRequest) returns (PutMessageStateResponse) {};
+    
+    /**
+    Gets the reception state of a particular message
+    */
+//    rpc GetMessageReceptionState(GetMessageReceptionStateRequest) returns (GetMessageReceptionStateResponse) {};
+
+    /**
+    Sets the reception state of a particular message
+    */
+//    rpc PutMessageReceptionState(PutMessageReceptionStateRequest) returns (PutMessageReceptionStateResponse) {};
+
+    /**
+    Gets contact list of the currently logged user ID
+    */
+    rpc GetContacts(GetContactsRequest) returns (GetContactsResponse) {};
+
+    /**
+    Adds a new contact into the contact list of the currently logged user ID
+    */
+//    rpc PutContact(PutContactRequest) returns (PutContactResponse) {};
+
+    /**
+    Deletes a contact from the contact list of the currently logged in user ID 
+    */
+//    rpc DeleteContact(DeleteContactRequest) returns (DeleteContactResponse) {};
+
+    /**
+    Edits the profile of currently logged in user ID
+    */
+//    rpc EditProfile(EditProfileRequest) returns (EditProfileResponse) {};
+
+    /**
+    Gets the profile of a specific user ID
+    */
+//    rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {};
+}
+
+message EditProfileRequest {
+    string name = 1;
+    string email = 2;
+    string avatarMediaId = 3;
+}
+
+message EditProfileResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message GetProfileRequest {
+    string userID = 1;
+}
+
+message GetProfileResponse {
+    string name = 1;
+    string email = 2;
+    string avatarMediaId = 3;
+}
+
+message ListConversationsRequest {
+}
+
+message ListConversationsResponse {
+    repeated Conversations list = 1;
+}
+
+message Conversations {
+    string chatID = 1;
+    string chatName = 2;
+    string avatar = 3;
+    int64 timestamp = 4;
+    int32 notification = 5;
+}
+
+message DeleteContactRequest {
+    // userID @ metadata
+    string userID = 1; // UserID to be deleted
+}
+
+message DeleteContactResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message GetContactsRequest {
+}
+
+message GetContactsResponse {
+    repeated Contacts list = 1;
+}
+
+message Contacts {
+    string userID = 1;
+    string name = 2;
+}
+
+message PutContactRequest {
+    Contacts contactData = 2;
+}
+
+message PutContactResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+enum ConversationType {
+    PeerToPeer = 0;
+    Group = 1;
+    Management = 2;
+}
+
+message GetMessageReceptionStateRequest {
+    string userID = 1;
+    string messageID = 2;
+}
+
+message GetMessageReceptionStateResponse {
+    MessageReceptionState status = 1;
+}
+
+enum MessageState {
+    Normal = 0;
+    Retracted = 1;
+}
+
+message GetMessageStateRequest {
+    string userID = 1;
+    string messageID = 2;
+}
+
+message GetMessageStateResponse {
+    MessageState state = 1;
+}
+
+enum MessageReceptionState {
+    Draft = 0;
+    Sent = 1;
+    Received = 2;
+    Read = 3;
+}
+
+message PutMessageStateRequest {
+    string messageID = 1;
+    MessageReceptionState status = 2;
+}
+
+message PutMessageStateResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message PutMessageReceptionStateRequest {
+    // userID is fetched from metadata
+    string messageID = 1;
+    MessageReceptionState status = 2;
+}
+
+message PutMessageReceptionStateResponse {
+    bool success = 1;
+} 
+
+message CreateConversationRequest {
+    string userID = 1;
+    string chatID = 2;
+    ConversationType type = 3;
+}
+
+message CreateConversationResponse {
+    string chatID = 1;
+    string message = 2;
+}
+
+message DeleteConversationRequest {
+    string chatID = 1;
+}
+
+message DeleteConversationResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message PutIntoConversationRequest {
+    string userID = 1;
+    string conversationID = 2;
+}
+
+message PutIntoConversationResponse {
+    string conversationID = 1;
+}
+
+message UploadMediaRequest {
+    bytes   content = 1;
+}
+
+enum UploadMediaStatus {
+    Uploading   = 0;
+    Done        = 1;
+    Error       = 2;
+}
+
+message UploadMediaResponse {
+    string mediaID = 1;
+    UploadMediaStatus status = 2;
+}
+
+message GetMediaRequest {
+    string mediaID = 1;
+}
+
+message GetMediaResponse {
+    bytes content = 1;
+}
+
+message GetMessagesRequest {
+    // empty, the recipient device id is collected from metadata
+}
+
+message GetMessagesResponseItem {
+    string  recipientID         = 1;
+    string  senderID            = 2;
+    string  senderDeviceID      = 3;
+    int64   messageID           = 4;
+    int64   messageTimestamp    = 5;
+    string  messageContents     = 6;
+    bool    messageEncrypted    = 7;
+}
+
+message PutMessageResponse {
+    int64 messageID = 1;
+}
+
+message PutMessageRequest {
+    string  recipientID         = 1;
+    int64   messageID           = 2;
+    int64   messageTimestamp    = 3;
+    string  messageContents     = 4;
+    bool    messageEncrypted    = 5;
+}
+
+message PublicGetKeysRequest {
+    string  userID   = 1;
+}
+
+message PublicGetKeysResponse {
+    bytes   keys    = 1;
+}
+
+message PutKeysRequest {
+    string  userID   = 1;
+    bytes   keys     = 2;
+}
+
+message PutKeysResponse {
+    string  userID   = 1;
+}
+

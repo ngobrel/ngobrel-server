@@ -89,6 +89,7 @@ func (req *GetMessagesRequest) getMessages(recipientDeviceID uuid.UUID, stream N
 		  PRIMARY KEY (message_id, sender_id, recipient_device_id)
 		);
 	*/
+	fmt.Println("Getting messages for device id" + recipientDeviceID.String())
 	rows, err := db.Query(`DELETE FROM conversations WHERE recipient_device_id=$1 RETURNING recipient_id, message_id, sender_id, 
 	sender_device_id, message_timestamp, message_contents, message_encrypted`, recipientDeviceID.String())
 	if err != nil {
@@ -122,7 +123,7 @@ func (req *GetMessagesRequest) getMessages(recipientDeviceID uuid.UUID, stream N
 			SenderID:         senderID.String(),
 			SenderDeviceID:   senderDeviceID.String(),
 			MessageID:        messageID,
-			MessageTimestamp: int64(messageTimestamp.Nanosecond()),
+			MessageTimestamp: int64(messageTimestamp.UnixNano() / 1000000),
 			MessageContents:  messageContents,
 			MessageEncrypted: messageEncrypted,
 		})

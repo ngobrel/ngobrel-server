@@ -159,34 +159,38 @@ func (req *CreateConversationRequest) CreateConversation(userID uuid.UUID) (*Cre
 }
 
 func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListConversationsResponse, error) {
-	rows, err := db.Query(`SELECT a.chat_id as chat_id, a.name as chat_name, a.chat_type as chat_type, a.notification as notification, b.updated_at 
+	rows, err := db.Query(`SELECT b.excerpt as excerpt, a.chat_id as chat_id, a.name as chat_name, a.chat_type as chat_type, a.notification as notification, b.updated_at 
 	FROM chat_list b, contacts a
-	WHERE a.chat_id = b.chat_id and a.user_id = b.userid and a.user_id=$1 ORDER BY b.updated_at DESC`, userID.String())
+	WHERE a.chat_id = b.chat_id and a.user_id = b.user_id and a.user_id=$1 ORDER BY b.updated_at DESC`, userID.String())
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var list []*Conversations
+	var list []*Conversations = []*Conversations{}
 	for rows.Next() {
 		var chatID uuid.UUID
 		var chatType int
 		var chatName string
-		var notification int32
-		var updatedAt int64
+		var excerpt string
+		var notification int64
+		var updatedAt time.Time
 
-		if err := rows.Scan(&chatID,
+		if err := rows.Scan(&excerpt, &chatID,
 			&chatName,
 			&chatType,
 			&notification, &updatedAt); err != nil {
 			return nil, err
 		}
+
 		item := &Conversations{
 			ChatID:       chatID.String(),
-			Timestamp:    updatedAt,
-			Notification: notification,
+			Timestamp:    updatedAt.UnixNano() / 1000000,
+			Notification: int64(notification),
 			ChatName:     chatName,
+			Excerpt:      excerpt,
 		}
+		fmt.Println("notification", item)
 		list = append(list, item)
 	}
 	result := &ListConversationsResponse{

@@ -138,9 +138,9 @@ message ListConversationsResponse {
 message Conversations {
     string chatID = 1;
     string chatName = 2;
-    string avatar = 3;
+    string excerpt = 3;
     int64 timestamp = 4;
-    int32 notification = 5;
+    int64 notification = 5;
 }
 
 message DeleteContactRequest {

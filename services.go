@@ -94,3 +94,12 @@ func (srv *Server) GetContacts(ctx context.Context, in *GetContactsRequest) (*Ge
 
 	return in.GetContacts(userID)
 }
+
+func (srv *Server) UpdateConversation(ctx context.Context, in *UpdateConversationRequest) (*UpdateConversationResponse, error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return in.UpdateConversation(userID)
+}

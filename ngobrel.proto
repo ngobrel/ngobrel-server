@@ -50,7 +50,12 @@ service Ngobrel {
     List available conversations for currently logged in userID
     */
     rpc ListConversations(ListConversationsRequest) returns (ListConversationsResponse) {}
-    
+ 
+    /**
+    Updates a conversation
+    */
+    rpc UpdateConversation(UpdateConversationRequest) returns (UpdateConversationResponse) {}
+
     /**
     Invite other people into a conversation
     */
@@ -141,6 +146,17 @@ message Conversations {
     string excerpt = 3;
     int64 timestamp = 4;
     int64 notification = 5;
+}
+
+message UpdateConversationRequest {
+    string chatID = 1;
+    string excerpt = 2;
+    int64 timestamp = 3;
+}
+
+message UpdateConversationResponse {
+    bool success = 1;
+    string message = 2;
 }
 
 message DeleteContactRequest {

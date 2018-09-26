@@ -158,6 +158,18 @@ func (req *CreateConversationRequest) CreateConversation(userID uuid.UUID) (*Cre
 	return &CreateConversationResponse{ChatID: req.ChatID, Message: ""}, nil
 }
 
+func (req *UpdateConversationRequest) UpdateConversation(userID uuid.UUID) (*UpdateConversationResponse, error) {
+	_, err := db.Exec(`UPDATE chat_list SET excerpt=$1, updated_at=to_timestamp($2) WHERE chat_id=$3 AND user_id=$4`,
+		req.Excerpt, req.Timestamp, req.ChatID, userID.String())
+
+	if err != nil {
+		fmt.Println("error:" + err.Error())
+		return nil, err
+	}
+
+	return &UpdateConversationResponse{Success: true, Message: ""}, nil
+}
+
 func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListConversationsResponse, error) {
 	rows, err := db.Query(`SELECT b.excerpt as excerpt, a.chat_id as chat_id, a.name as chat_name, a.chat_type as chat_type, a.notification as notification, b.updated_at 
 	FROM chat_list b, contacts a

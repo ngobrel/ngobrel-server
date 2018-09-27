@@ -102,6 +102,11 @@ service Ngobrel {
 //    rpc DeleteContact(DeleteContactRequest) returns (DeleteContactResponse) {};
 
     /**
+    Registers a new profile
+    */
+    rpc CreateProfile(CreateProfileRequest) returns (CreateProfileResponse) {};
+
+    /**
     Edits the profile of currently logged in user ID
     */
 //    rpc EditProfile(EditProfileRequest) returns (EditProfileResponse) {};
@@ -110,6 +115,16 @@ service Ngobrel {
     Gets the profile of a specific user ID
     */
 //    rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {};
+}
+
+
+message CreateProfileRequest {
+    string deviceID = 1;
+    string phoneNumber = 2;
+}
+
+message CreateProfileResponse {
+    string userID = 1;
 }
 
 message EditProfileRequest {

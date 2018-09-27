@@ -103,3 +103,7 @@ func (srv *Server) UpdateConversation(ctx context.Context, in *UpdateConversatio
 
 	return in.UpdateConversation(userID)
 }
+
+func (srv *Server) CreateProfile(ctx context.Context, in *CreateProfileRequest) (*CreateProfileResponse, error) {
+	return in.CreateProfile()
+}

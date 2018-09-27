@@ -210,6 +210,47 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 	return result, nil
 }
 
+func (req *CreateProfileRequest) CreateProfile() (*CreateProfileResponse, error) {
+	rows, err := db.Query(`SELECT user_id FROM profile where phone_number=$1`, req.PhoneNumber)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+
+	defer rows.Close()
+	var userID string
+	for rows.Next() {
+		err := rows.Scan(&userID)
+		if err != nil {
+			fmt.Println(err.Error())
+			return nil, err
+		}
+	}
+
+	if len(userID) == 0 {
+		newUUID := uuid.Must(uuid.NewV4(), nil)
+		userID = newUUID.String()
+		_, err = db.Exec(`INSERT INTO profile (user_id, phone_number, created_at, updated_at) values ($1, $2, now(), now());`, userID, req.PhoneNumber)
+		if err != nil {
+			fmt.Println(err.Error())
+			return nil, err
+		}
+	}
+
+	fmt.Println(userID + ":" + req.DeviceID + ":" + req.PhoneNumber)
+	_, err = db.Exec(`INSERT INTO devices (user_id, device_id, updated_at, created_at, device_state) values ($1, $2, now(), now(), 1)
+	ON CONFLICT (user_id, device_id) DO UPDATE SET user_id=$1, device_id=$2, updated_at=now() 
+	`, userID, req.DeviceID)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+
+	return &CreateProfileResponse{
+		UserID: userID,
+	}, nil
+}
+
 /**
 CREATE TABLE contacts (
   user_id UUID not null,

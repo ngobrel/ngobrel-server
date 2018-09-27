@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	fmt.Println("OK")
+	fmt.Println("OK!")
 
 	port := "localhost:8000"
 	lis, err := net.Listen("tcp", port)

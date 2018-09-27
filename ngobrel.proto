@@ -177,8 +177,9 @@ message GetContactsResponse {
 }
 
 message Contacts {
-    string userID = 1;
+    string peerID = 1;
     string name = 2;
+    int64 notification = 3;
 }
 
 message PutContactRequest {

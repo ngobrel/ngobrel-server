@@ -202,7 +202,6 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 			ChatName:     chatName,
 			Excerpt:      excerpt,
 		}
-		fmt.Println("notification", item)
 		list = append(list, item)
 	}
 	result := &ListConversationsResponse{
@@ -225,7 +224,7 @@ CREATE TABLE contacts (
 
 */
 func (req *GetContactsRequest) GetContacts(userID uuid.UUID) (*GetContactsResponse, error) {
-	rows, err := db.Query(`SELECT chat_id, name 
+	rows, err := db.Query(`SELECT chat_id, name, updated_at, notification 
 	FROM contacts 
 	WHERE user_id=$1 AND chat_type=0 ORDER BY name`, userID.String())
 	if err != nil {
@@ -237,18 +236,22 @@ func (req *GetContactsRequest) GetContacts(userID uuid.UUID) (*GetContactsRespon
 	for rows.Next() {
 		var peerID uuid.UUID
 		var chatName string
-		var updatedAt int64
+		var updatedAt time.Time
+		var notification int64
 
 		if err := rows.Scan(&peerID,
 			&chatName,
-			&updatedAt); err != nil {
+			&updatedAt,
+			&notification); err != nil {
 			return nil, err
 		}
 
 		item := &Contacts{
-			UserID: peerID.String(),
-			Name:   chatName,
+			PeerID:       peerID.String(),
+			Name:         chatName,
+			Notification: int64(notification),
 		}
+		fmt.Println(item)
 		list = append(list, item)
 	}
 	result := &GetContactsResponse{

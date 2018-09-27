@@ -94,7 +94,7 @@ service Ngobrel {
     /**
     Adds a new contact into the contact list of the currently logged user ID
     */
-//    rpc PutContact(PutContactRequest) returns (PutContactResponse) {};
+    rpc PutContact(PutContactRequest) returns (PutContactResponse) {};
 
     /**
     Deletes a contact from the contact list of the currently logged in user ID 
@@ -198,11 +198,18 @@ message Contacts {
 }
 
 message PutContactRequest {
+    string phoneNumber = 1;
     Contacts contactData = 2;
 }
 
+enum PutContactStatus {
+    Success = 0;
+    GeneralError = 1;
+    ContactIsNotInTheSystem = 2;
+}
+
 message PutContactResponse {
-    bool success = 1;
+    PutContactStatus status = 1;
     string message = 2;
 }
 

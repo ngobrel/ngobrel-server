@@ -159,7 +159,10 @@ func (req *CreateConversationRequest) CreateConversation(userID uuid.UUID) (*Cre
 }
 
 func (req *UpdateConversationRequest) UpdateConversation(userID uuid.UUID) (*UpdateConversationResponse, error) {
-	_, err := db.Exec(`UPDATE chat_list SET excerpt=$1, updated_at=to_timestamp($2) WHERE chat_id=$3 AND user_id=$4`,
+	_, err := db.Exec(`
+		INSERT INTO chat_list values ($4, $3, now(), now(), $1) 
+		ON CONFLICT (user_id, chat_id) DO
+	UPDATE SET excerpt=$1, updated_at=to_timestamp($2)`,
 		req.Excerpt, req.Timestamp, req.ChatID, userID.String())
 
 	if err != nil {
@@ -171,6 +174,8 @@ func (req *UpdateConversationRequest) UpdateConversation(userID uuid.UUID) (*Upd
 }
 
 func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListConversationsResponse, error) {
+	fmt.Println(userID.String())
+
 	rows, err := db.Query(`SELECT b.excerpt as excerpt, a.chat_id as chat_id, a.name as chat_name, a.chat_type as chat_type, a.notification as notification, b.updated_at 
 	FROM chat_list b, contacts a
 	WHERE a.chat_id = b.chat_id and a.user_id = b.user_id and a.user_id=$1 ORDER BY b.updated_at DESC`, userID.String())
@@ -251,6 +256,44 @@ func (req *CreateProfileRequest) CreateProfile() (*CreateProfileResponse, error)
 	}, nil
 }
 
+func (req *PutContactRequest) PutContact(userID uuid.UUID) (*PutContactResponse, error) {
+	rows, err := db.Query(`SELECT user_id FROM profile where phone_number=$1`, req.PhoneNumber)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+
+	defer rows.Close()
+	var peerID string
+	for rows.Next() {
+		err := rows.Scan(&peerID)
+		if err != nil {
+			fmt.Println(err.Error())
+			return nil, err
+		}
+	}
+
+	if len(peerID) == 0 {
+		return &PutContactResponse{
+			Status: PutContactStatus_ContactIsNotInTheSystem,
+		}, nil
+	}
+
+	_, err = db.Exec(`INSERT INTO contacts (user_id, chat_id, chat_type, name, created_at, updated_at, notification) values
+											($1, $2, 0, $3, now(), now(), 0)
+					  ON CONFLICT (user_id, chat_id) DO UPDATE SET updated_at=now(), name=$3
+											`,
+		userID.String(), peerID, req.ContactData.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PutContactResponse{
+		Status: PutContactStatus_Success,
+	}, nil
+
+}
+
 /**
 CREATE TABLE contacts (
   user_id UUID not null,
@@ -292,6 +335,7 @@ func (req *GetContactsRequest) GetContacts(userID uuid.UUID) (*GetContactsRespon
 			Name:         chatName,
 			Notification: int64(notification),
 		}
+
 		fmt.Println(item)
 		list = append(list, item)
 	}

@@ -107,3 +107,12 @@ func (srv *Server) UpdateConversation(ctx context.Context, in *UpdateConversatio
 func (srv *Server) CreateProfile(ctx context.Context, in *CreateProfileRequest) (*CreateProfileResponse, error) {
 	return in.CreateProfile()
 }
+
+func (srv *Server) PutContact(ctx context.Context, in *PutContactRequest) (*PutContactResponse, error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return in.PutContact(userID)
+}

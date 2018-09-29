@@ -337,6 +337,7 @@ message GetMessagesResponseItem {
 
 message PutMessageResponse {
     int64 messageID = 1;
+    int64 messageTimestamp = 2;
 }
 
 message PutMessageRequest {

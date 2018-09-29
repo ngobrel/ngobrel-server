@@ -60,11 +60,15 @@ func (srv *Server) PutMessage(ctx context.Context, in *PutMessageRequest) (*PutM
 	}
 
 	in.MessageID = (time.Now().UnixNano() / 1000000) - 946659600000 // 2000-01-01T00:00:00
-	err = in.putMessageToUserID(senderID, senderDeviceID, recipientID)
+
+	now := time.Now().UnixNano() / 1000.0 // in microsecs
+	nowFloat := float64(now) / 1000000.0  // in secs
+
+	err = in.putMessageToUserID(senderID, senderDeviceID, recipientID, nowFloat)
 	if err != nil {
 		return nil, err
 	}
-	return &PutMessageResponse{MessageID: int64(in.MessageID)}, nil
+	return &PutMessageResponse{MessageID: int64(in.MessageID), MessageTimestamp: now}, nil
 }
 
 func (srv *Server) CreateConversation(ctx context.Context, in *CreateConversationRequest) (*CreateConversationResponse, error) {

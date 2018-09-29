@@ -14,7 +14,7 @@ import (
 
 var db *sql.DB
 
-func (req *PutMessageRequest) putMessageToUserID(senderID uuid.UUID, senderDeviceID uuid.UUID, recipientID uuid.UUID) error {
+func (req *PutMessageRequest) putMessageToUserID(senderID uuid.UUID, senderDeviceID uuid.UUID, recipientID uuid.UUID, now float64) error {
 	/*
 		CREATE TABLE devices (
 		  user_id UUID not null,
@@ -36,7 +36,7 @@ func (req *PutMessageRequest) putMessageToUserID(senderID uuid.UUID, senderDevic
 			if err := rows.Scan(&deviceID); err != nil {
 				return err
 			}
-			err = req.putMessageToDeviceID(senderID, senderDeviceID, deviceID)
+			err = req.putMessageToDeviceID(senderID, senderDeviceID, deviceID, now)
 			if err != nil {
 				return err
 			}
@@ -47,7 +47,7 @@ func (req *PutMessageRequest) putMessageToUserID(senderID uuid.UUID, senderDevic
 	return nil
 }
 
-func (req *PutMessageRequest) putMessageToDeviceID(senderID uuid.UUID, senderDeviceID uuid.UUID, recipientDeviceID uuid.UUID) error {
+func (req *PutMessageRequest) putMessageToDeviceID(senderID uuid.UUID, senderDeviceID uuid.UUID, recipientDeviceID uuid.UUID, now float64) error {
 	/*
 			CREATE TABLE conversations (
 		  recipient_id UUID not null,
@@ -62,10 +62,11 @@ func (req *PutMessageRequest) putMessageToDeviceID(senderID uuid.UUID, senderDev
 		);
 
 	*/
+
 	_, err := db.Exec(`INSERT INTO conversations values ($1, $2, $3, $4, $5, to_timestamp($6), $7, $8)`,
 		req.RecipientID, req.MessageID,
 		senderID.String(), senderDeviceID.String(), recipientDeviceID.String(),
-		req.MessageTimestamp, req.MessageContents, req.MessageEncrypted)
+		now, req.MessageContents, req.MessageEncrypted)
 
 	if err != nil {
 		fmt.Println(req.MessageID)

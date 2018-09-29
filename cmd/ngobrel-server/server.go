@@ -13,7 +13,7 @@ import (
 func main() {
 	fmt.Println("OK!")
 
-	port := "localhost:8000"
+	port := ":8000"
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)

@@ -14,7 +14,7 @@ import (
 
 var db *sql.DB
 
-func (req *PutMessageRequest) putMessageToUserID(senderID uuid.UUID, senderDeviceID uuid.UUID, recipientID uuid.UUID, now float64) error {
+func (req *PutMessageRequest) putMessageToUserID(srv *Server, senderID uuid.UUID, senderDeviceID uuid.UUID, recipientID uuid.UUID, now float64) error {
 	/*
 		CREATE TABLE devices (
 		  user_id UUID not null,
@@ -36,6 +36,14 @@ func (req *PutMessageRequest) putMessageToUserID(senderID uuid.UUID, senderDevic
 			if err := rows.Scan(&deviceID); err != nil {
 				return err
 			}
+
+			stream, ok := srv.receiptStream[deviceID.String()]
+			if ok && stream != nil {
+				fmt.Println("Ping subscribers")
+				now := time.Now().UnixNano() / 1000
+				stream.Send(&GetMessageNotificationStream{Timestamp: now})
+			}
+
 			err = req.putMessageToDeviceID(senderID, senderDeviceID, deviceID, now)
 			if err != nil {
 				return err
@@ -72,6 +80,15 @@ func (req *PutMessageRequest) putMessageToDeviceID(senderID uuid.UUID, senderDev
 		fmt.Println(req.MessageID)
 		fmt.Println(err.Error())
 		return err
+	}
+	return nil
+}
+
+func (req *GetMessagesRequest) getMessageNotificationStream(srv *Server, recipientDeviceID uuid.UUID, stream Ngobrel_GetMessageNotificationServer) error {
+	// subscribe
+	srv.receiptStream[recipientDeviceID.String()] = stream
+	for {
+		fmt.Println()
 	}
 	return nil
 }

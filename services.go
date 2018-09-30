@@ -10,7 +10,15 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-type Server struct{}
+type Server struct {
+	receiptStream map[string]Ngobrel_GetMessageNotificationServer
+}
+
+func NewServer() *Server {
+	return &Server{
+		receiptStream: make(map[string]Ngobrel_GetMessageNotificationServer),
+	}
+}
 
 func getID(ctx context.Context, id string) (uuid.UUID, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
@@ -32,6 +40,15 @@ func getDeviceID(ctx context.Context) (uuid.UUID, error) {
 
 func getUserID(ctx context.Context) (uuid.UUID, error) {
 	return getID(ctx, "user-id")
+}
+
+func (srv *Server) GetMessageNotification(in *GetMessagesRequest, stream Ngobrel_GetMessageNotificationServer) error {
+	recipientDeviceID, err := getDeviceID(stream.Context())
+	if err != nil {
+		return err
+	}
+
+	return in.getMessageNotificationStream(srv, recipientDeviceID, stream)
 }
 
 func (srv *Server) GetMessages(in *GetMessagesRequest, stream Ngobrel_GetMessagesServer) error {
@@ -64,7 +81,7 @@ func (srv *Server) PutMessage(ctx context.Context, in *PutMessageRequest) (*PutM
 	now := time.Now().UnixNano() / 1000.0 // in microsecs
 	nowFloat := float64(now) / 1000000.0  // in secs
 
-	err = in.putMessageToUserID(senderID, senderDeviceID, recipientID, nowFloat)
+	err = in.putMessageToUserID(srv, senderID, senderDeviceID, recipientID, nowFloat)
 	if err != nil {
 		return nil, err
 	}

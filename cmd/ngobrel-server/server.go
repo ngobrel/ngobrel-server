@@ -21,7 +21,8 @@ func main() {
 
 	pb.InitDB()
 	s := grpc.NewServer()
-	pb.RegisterNgobrelServer(s, &pb.Server{})
+	server := pb.NewServer()
+	pb.RegisterNgobrelServer(s, server)
 	// Register reflection service on gRPC server.
 	reflection.Register(s)
 	if err := s.Serve(lis); err != nil {

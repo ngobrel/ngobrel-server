@@ -32,6 +32,11 @@ service Ngobrel {
     rpc GetMessages(GetMessagesRequest) returns (stream GetMessagesResponseItem) {}
 
     /**
+    Get notifications for incoming messages
+    */
+    rpc GetMessageNotification(GetMessagesRequest) returns (stream GetMessageNotificationStream) {}
+
+    /**
     Uploads media file
     */
 //    rpc UploadMedia(stream UploadMediaRequest) returns (UploadMediaResponse) {}
@@ -323,6 +328,10 @@ message GetMediaResponse {
 
 message GetMessagesRequest {
     // empty, the recipient device id is collected from metadata
+}
+
+message GetMessageNotificationStream {
+    int64 timestamp = 1;
 }
 
 message GetMessagesResponseItem {

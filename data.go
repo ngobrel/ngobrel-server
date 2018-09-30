@@ -274,6 +274,59 @@ func (req *CreateProfileRequest) CreateProfile() (*CreateProfileResponse, error)
 	}, nil
 }
 
+func (req *EditProfileRequest) EditProfile(userID uuid.UUID) (*EditProfileResponse, error) {
+	result, err := db.Exec(`UPDATE profile set user_name=$1, name=$2, custom_data=$3, updated_at=now() WHERE user_id=$4;`,
+		req.UserName, req.Name, req.CustomData, userID.String())
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		fmt.Println("EditProfileError: " + err.Error())
+		return nil, err
+	}
+	return &EditProfileResponse{
+		Success: count > 0,
+	}, nil
+}
+
+func (req *GetProfileRequest) GetProfile(userID uuid.UUID) (*GetProfileResponse, error) {
+	qUserID := userID.String()
+	if req.UserID != "" {
+		qUserID = req.UserID
+	}
+	rows, err := db.Query(`SELECT name, phone_number, user_name, custom_data, updated_at from profile WHERE user_id=$1;`,
+		qUserID)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+	var phoneNumber string
+	var fullName sql.NullString
+	var userName sql.NullString
+	var customData sql.NullString
+	var updatedAt time.Time
+	for rows.Next() {
+		err := rows.Scan(&fullName, &phoneNumber, &userName, &customData, &updatedAt)
+
+		if err != nil {
+			fmt.Println("GetProfileError: " + err.Error())
+			return nil, err
+		}
+	}
+
+	return &GetProfileResponse{
+		Name:        fullName.String,
+		PhoneNumber: phoneNumber,
+		UserName:    userName.String,
+		CustomData:  customData.String,
+	}, nil
+}
+
 func (req *PutContactRequest) PutContact(userID uuid.UUID) (*PutContactResponse, error) {
 	rows, err := db.Query(`SELECT user_id FROM profile where phone_number=$1`, req.PhoneNumber)
 	if err != nil {

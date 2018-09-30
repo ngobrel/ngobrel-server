@@ -129,6 +129,22 @@ func (srv *Server) CreateProfile(ctx context.Context, in *CreateProfileRequest) 
 	return in.CreateProfile()
 }
 
+func (srv *Server) EditProfile(ctx context.Context, in *EditProfileRequest) (*EditProfileResponse, error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return in.EditProfile(userID)
+}
+
+func (srv *Server) GetProfile(ctx context.Context, in *GetProfileRequest) (*GetProfileResponse, error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return in.GetProfile(userID)
+}
+
 func (srv *Server) PutContact(ctx context.Context, in *PutContactRequest) (*PutContactResponse, error) {
 	userID, err := getUserID(ctx)
 	if err != nil {

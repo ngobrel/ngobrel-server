@@ -114,12 +114,12 @@ service Ngobrel {
     /**
     Edits the profile of currently logged in user ID
     */
-//    rpc EditProfile(EditProfileRequest) returns (EditProfileResponse) {};
+    rpc EditProfile(EditProfileRequest) returns (EditProfileResponse) {};
 
     /**
     Gets the profile of a specific user ID
     */
-//    rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {};
+    rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {};
 }
 
 
@@ -134,8 +134,9 @@ message CreateProfileResponse {
 
 message EditProfileRequest {
     string name = 1;
-    string email = 2;
-    string avatarMediaId = 3;
+    string userName = 2;
+    string customData = 3;
+    string avatarMediaId = 4;
 }
 
 message EditProfileResponse {
@@ -149,8 +150,10 @@ message GetProfileRequest {
 
 message GetProfileResponse {
     string name = 1;
-    string email = 2;
-    string avatarMediaId = 3;
+    string userName = 2;
+    string phoneNumber = 3;
+    string customData = 4;
+    string avatarMediaId = 5;
 }
 
 message ListConversationsRequest {

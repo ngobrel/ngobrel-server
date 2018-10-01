@@ -86,9 +86,14 @@ func (req *PutMessageRequest) putMessageToDeviceID(senderID uuid.UUID, senderDev
 
 func (req *GetMessagesRequest) getMessageNotificationStream(srv *Server, recipientDeviceID uuid.UUID, stream Ngobrel_GetMessageNotificationServer) error {
 	// subscribe
+	if srv.receiptStream[recipientDeviceID.String()] != nil {
+		return nil
+	}
 	srv.receiptStream[recipientDeviceID.String()] = stream
 	for {
-		fmt.Println()
+		// suspend
+		fmt.Println("Notification stream for " + recipientDeviceID.String())
+		time.Sleep(5 * 60 * time.Second)
 	}
 	return nil
 }

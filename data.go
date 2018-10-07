@@ -172,9 +172,6 @@ func (req *PutMessageRequest) putMessageToDeviceID(srv *Server, tx *sql.Tx, send
 
 func (req *GetMessagesRequest) getMessageNotificationStream(srv *Server, recipientDeviceID uuid.UUID, stream Ngobrel_GetMessageNotificationServer) error {
 	// subscribe
-	if srv.receiptStream[recipientDeviceID.String()] != nil {
-		return nil
-	}
 	srv.receiptStream[recipientDeviceID.String()] = stream
 	log.Println(recipientDeviceID.String() + " is susbscribed")
 	for {

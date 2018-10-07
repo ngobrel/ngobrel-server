@@ -47,6 +47,11 @@ service Ngobrel {
 //    rpc GetMedia(stream GetMediaRequest) returns(GetMediaResponse) {}
 
     /**
+    Creates a group conversation
+    */
+    rpc CreateGroupConversation(CreateGroupConversationRequest) returns (CreateGroupConversationResponse) {}
+
+    /**
     Creates a new conversation, either a peer-to-peer or group conversation
     */
     rpc CreateConversation(CreateConversationRequest) returns (CreateConversationResponse) {}
@@ -358,6 +363,7 @@ message PutMessageRequest {
     int64   messageTimestamp    = 3;
     string  messageContents     = 4;
     bool    messageEncrypted    = 5;
+    string  messageExcerpt      = 6;
 }
 
 message PublicGetKeysRequest {
@@ -377,3 +383,15 @@ message PutKeysResponse {
     string  userID   = 1;
 }
 
+message GroupParticipant {
+    string userID = 1;
+}
+message CreateGroupConversationRequest {
+    string name  = 1;
+    bytes avatar = 2 ;
+    repeated GroupParticipant participants = 3;
+}
+
+message CreateGroupConversationResponse {
+    string groupID = 1;
+}

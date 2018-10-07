@@ -2,8 +2,11 @@
 package ngobrel
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"os"
@@ -14,16 +17,94 @@ import (
 
 var db *sql.DB
 
-func (req *PutMessageRequest) putMessageToUserID(srv *Server, senderID uuid.UUID, senderDeviceID uuid.UUID, recipientID uuid.UUID, now float64) error {
-	/*
-		CREATE TABLE devices (
-		  user_id UUID not null,
-		  device_id UUID not null,
-		  created_at INT not null,
-		  updated_at INT not null,
-		  device_state SMALLINT not null,
-		  PRIMARY KEY (user_id, device_id)
-		);o*/
+func InitDB() {
+	connStr := os.Getenv("DB_URL")
+	fmt.Println("COnnecting to DB " + connStr)
+	db, _ = sql.Open("postgres", connStr)
+}
+
+func (req *PutMessageRequest) putMessageToUserIDCheckGroup(srv *Server, senderID uuid.UUID, senderDeviceID uuid.UUID, recipientID uuid.UUID, now float64) error {
+	rows, err := db.Query(`SELECT chat_id FROM group_list WHERE chat_id=$1`, recipientID.String())
+	if err != nil {
+		fmt.Println("err: " + err.Error())
+		return err
+	}
+
+	defer rows.Close()
+	ctx := context.Background()
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+
+	for rows.Next() {
+		var groupID uuid.UUID
+		if err := rows.Scan(&groupID); err != nil {
+			log.Println(err)
+			return err
+		}
+
+		log.Println("It's a group.")
+		err = req.putMessageToGroupMember(srv, tx, senderID, senderDeviceID, groupID, now)
+
+		if err != nil {
+			log.Println(err)
+			tx.Rollback()
+			return err
+		}
+
+		if err = tx.Commit(); err != nil {
+			log.Println(err)
+		}
+		return err
+	}
+
+	// not found in group list, so it must be individual recipient
+	err = req.putMessageToUserID(srv, tx, false, senderID, senderDeviceID, recipientID, now)
+	if err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		log.Println(err)
+	}
+	return err
+}
+
+func (req *PutMessageRequest) putMessageToGroupMember(srv *Server, tx *sql.Tx, senderID uuid.UUID, senderDeviceID uuid.UUID, chatID uuid.UUID, now float64) error {
+	rows, err := db.Query(`SELECT user_id FROM chat_list WHERE chat_id=$1`, chatID.String())
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var recipientID uuid.UUID
+		if err := rows.Scan(&recipientID); err != nil {
+			log.Println(err)
+			return err
+		}
+
+		err = req.putMessageToUserID(srv, tx, true, senderID, senderDeviceID, recipientID, now)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		_, err = tx.Exec(`
+		INSERT INTO chat_list (user_id, chat_id, created_at, updated_at, excerpt) values ($3, $2, now(), now(), $1) ON CONFLICT (user_id, chat_id) DO UPDATE SET excerpt=$1, updated_at=now()`,
+			req.MessageExcerpt, chatID.String(), recipientID.String())
+
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (req *PutMessageRequest) putMessageToUserID(srv *Server, tx *sql.Tx, isGroup bool, senderID uuid.UUID, senderDeviceID uuid.UUID, recipientID uuid.UUID, now float64) error {
 	if req.MessageEncrypted == false {
 		rows, err := db.Query(`SELECT device_id FROM devices WHERE user_id=$1 AND device_state = 1`, recipientID.String())
 		if err != nil {
@@ -37,17 +118,15 @@ func (req *PutMessageRequest) putMessageToUserID(srv *Server, senderID uuid.UUID
 				return err
 			}
 
-			stream, ok := srv.receiptStream[deviceID.String()]
-			if ok && stream != nil {
-				fmt.Println("Ping subscribers")
-				now := time.Now().UnixNano() / 1000
-				stream.Send(&GetMessageNotificationStream{Timestamp: now})
-			}
-
-			err = req.putMessageToDeviceID(senderID, senderDeviceID, deviceID, now)
+			err = req.putMessageToDeviceID(srv, tx, senderID, senderDeviceID, deviceID, now)
 			if err != nil {
 				return err
 			}
+		}
+		if isGroup == false {
+			_, err = tx.Exec(`
+			INSERT INTO chat_list values ($3, $2, now(), now(), $1) ON CONFLICT (user_id, chat_id) DO UPDATE SET excerpt=$1, updated_at=now()`,
+				req.MessageExcerpt, recipientID.String(), senderID.String())
 		}
 	} else {
 		// XXX TODO Encrypted version
@@ -55,23 +134,11 @@ func (req *PutMessageRequest) putMessageToUserID(srv *Server, senderID uuid.UUID
 	return nil
 }
 
-func (req *PutMessageRequest) putMessageToDeviceID(senderID uuid.UUID, senderDeviceID uuid.UUID, recipientDeviceID uuid.UUID, now float64) error {
-	/*
-			CREATE TABLE conversations (
-		  recipient_id UUID not null,
-		  message_id INT not null,
-		  sender_id UUID not null,
-		  sender_device_id UUID not null,
-		  recipient_device_id UUID not null,
-		  message_timestamp INT not null,
-		  message_contents text,
-		  message_encrypted boolean,
-		  PRIMARY KEY (message_id, sender_id, recipient_device_id)
-		);
+func (req *PutMessageRequest) putMessageToDeviceID(srv *Server, tx *sql.Tx, senderID uuid.UUID, senderDeviceID uuid.UUID, recipientDeviceID uuid.UUID, now float64) error {
 
-	*/
+	log.Println("putMessageToDeviceID: ", senderID.String(), req.MessageID, recipientDeviceID.String(), req.RecipientID)
 
-	_, err := db.Exec(`INSERT INTO conversations values ($1, $2, $3, $4, $5, to_timestamp($6), $7, $8)`,
+	_, err := tx.Exec(`INSERT INTO conversations values ($1, $2, $3, $4, $5, to_timestamp($6), $7, $8)`,
 		req.RecipientID, req.MessageID,
 		senderID.String(), senderDeviceID.String(), recipientDeviceID.String(),
 		now, req.MessageContents, req.MessageEncrypted)
@@ -81,6 +148,14 @@ func (req *PutMessageRequest) putMessageToDeviceID(senderID uuid.UUID, senderDev
 		fmt.Println(err.Error())
 		return err
 	}
+
+	stream, ok := srv.receiptStream[recipientDeviceID.String()]
+	if ok && stream != nil {
+		fmt.Println("Ping " + recipientDeviceID.String())
+		now := time.Now().UnixNano() / 1000
+		stream.Send(&GetMessageNotificationStream{Timestamp: now})
+	}
+
 	return nil
 }
 
@@ -90,6 +165,7 @@ func (req *GetMessagesRequest) getMessageNotificationStream(srv *Server, recipie
 		return nil
 	}
 	srv.receiptStream[recipientDeviceID.String()] = stream
+	log.Println(recipientDeviceID.String() + " is susbscribed")
 	for {
 		// suspend
 		fmt.Println("Notification stream for " + recipientDeviceID.String())
@@ -99,19 +175,7 @@ func (req *GetMessagesRequest) getMessageNotificationStream(srv *Server, recipie
 }
 
 func (req *GetMessagesRequest) getMessages(recipientDeviceID uuid.UUID, stream Ngobrel_GetMessagesServer) error {
-	/*
-			CREATE TABLE conversations (
-		  recipient_id UUID not null,
-		  message_id INT not null,
-		  sender_id UUID not null,
-		  sender_device_id UUID not null,
-		  recipient_device_id UUID not null,
-		  message_timestamp INT not null,
-		  message_contents text,
-		  message_encrypted boolean,
-		  PRIMARY KEY (message_id, sender_id, recipient_device_id)
-		);
-	*/
+
 	fmt.Println("Getting messages for device id" + recipientDeviceID.String())
 	rows, err := db.Query(`DELETE FROM conversations WHERE recipient_device_id=$1 RETURNING recipient_id, message_id, sender_id, 
 	sender_device_id, message_timestamp, message_contents, message_encrypted`, recipientDeviceID.String())
@@ -159,18 +223,6 @@ func (req *GetMessagesRequest) getMessages(recipientDeviceID uuid.UUID, stream N
 	return nil
 }
 
-/**
-CREATE TABLE chat_list (
-  user_id UUID not null,
-  chat_id INT not null,
-  chat_type SMALLINT not null,
-  created_at INT not null,
-  updated_at INT not null,
-  notification INT not null,
-  PRIMARY KEY (user_id, chat_id)
-);
-*/
-
 func (req *CreateConversationRequest) CreateConversation(userID uuid.UUID) (*CreateConversationResponse, error) {
 	_, err := db.Exec(`INSERT INTO chat_list values ($1, $2, $3, now(), now(), $4)`,
 		userID.String(), req.ChatID, req.Type, 0)
@@ -199,9 +251,12 @@ func (req *UpdateConversationRequest) UpdateConversation(userID uuid.UUID) (*Upd
 func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListConversationsResponse, error) {
 	fmt.Println(userID.String())
 
-	rows, err := db.Query(`SELECT b.excerpt as excerpt, a.chat_id as chat_id, a.name as chat_name, a.chat_type as chat_type, a.notification as notification, b.updated_at 
-	FROM chat_list b, contacts a
-	WHERE a.chat_id = b.chat_id and a.user_id = b.user_id and a.user_id=$1 ORDER BY b.updated_at DESC`, userID.String())
+	rows, err := db.Query(`
+	SELECT b.excerpt, a.chat_id, a.title as chat_name, b.updated_at FROM group_list a, chat_list b WHERE a.chat_id = b.chat_id and b.user_id=$1
+	UNION ALL
+	SELECT b.excerpt, a.chat_id, a.name as chat_name,  b.updated_at FROM contacts a, chat_list b WHERE a.chat_id = b.chat_id and a.user_id = b.user_id and b.user_id=$1
+	ORDER BY updated_at DESC
+	`, userID.String())
 	if err != nil {
 		return nil, err
 	}
@@ -210,28 +265,28 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 	var list []*Conversations = []*Conversations{}
 	for rows.Next() {
 		var chatID uuid.UUID
-		var chatType int
+		//var chatType int
 		var chatName string
 		var excerpt string
-		var notification int64
+		//var notification int64
 		var updatedAt time.Time
 
 		if err := rows.Scan(&excerpt, &chatID,
 			&chatName,
-			&chatType,
-			&notification, &updatedAt); err != nil {
+			&updatedAt); err != nil {
 			return nil, err
 		}
 
 		item := &Conversations{
-			ChatID:       chatID.String(),
-			Timestamp:    updatedAt.UnixNano() / 1000000,
-			Notification: int64(notification),
-			ChatName:     chatName,
-			Excerpt:      excerpt,
+			ChatID:    chatID.String(),
+			Timestamp: updatedAt.UnixNano() / 1000000,
+			//Notification: int64(notification),
+			ChatName: chatName,
+			Excerpt:  excerpt,
 		}
 		list = append(list, item)
 	}
+	log.Println(list)
 	result := &ListConversationsResponse{
 		List: list,
 	}
@@ -421,8 +476,47 @@ func (req *GetContactsRequest) GetContacts(userID uuid.UUID) (*GetContactsRespon
 	return result, nil
 }
 
-func InitDB() {
-	connStr := os.Getenv("DB_URL")
-	fmt.Println("COnnecting to DB " + connStr)
-	db, _ = sql.Open("postgres", connStr)
+func (req *CreateGroupConversationRequest) CreateGroupConversation(userID uuid.UUID) (*CreateGroupConversationResponse, error) {
+	ctx := context.Background()
+
+	chatID := uuid.Must(uuid.NewV4(), nil)
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Println(err)
+	}
+
+	_, execErr := tx.Exec(`INSERT INTO group_list (chat_id, creator_id, created_at, updated_at, title) values ($1, $2, now(), now(), $3)`,
+		chatID.String(), userID.String(), req.Name)
+	if execErr != nil {
+		_ = tx.Rollback()
+
+		log.Println(execErr)
+		return nil, errors.New("error-creating-group-table")
+	}
+	_, execErr = tx.Exec(`INSERT INTO chat_list (user_id, chat_id, created_at, updated_at) values ($1, $2, now(), now())`, userID.String(), chatID.String())
+	if execErr != nil {
+		_ = tx.Rollback()
+
+		log.Println(execErr)
+		return nil, errors.New("error-creating-group-when-inserting-admin")
+	}
+
+	for _, participant := range req.Participants {
+
+		_, execErr := tx.Exec(`INSERT INTO chat_list (user_id, chat_id, created_at, updated_at) values ($1, $2, now(), now())`, participant.UserID, chatID.String())
+		if execErr != nil {
+			_ = tx.Rollback()
+
+			log.Println(execErr)
+			return nil, errors.New("error-creating-group-when-inserting-participant")
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Println(err)
+	}
+
+	return &CreateGroupConversationResponse{
+		GroupID: chatID.String(),
+	}, nil
 }

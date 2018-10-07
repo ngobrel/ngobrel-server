@@ -81,7 +81,7 @@ func (srv *Server) PutMessage(ctx context.Context, in *PutMessageRequest) (*PutM
 	now := time.Now().UnixNano() / 1000.0 // in microsecs
 	nowFloat := float64(now) / 1000000.0  // in secs
 
-	err = in.putMessageToUserID(srv, senderID, senderDeviceID, recipientID, nowFloat)
+	err = in.putMessageToUserIDCheckGroup(srv, senderID, senderDeviceID, recipientID, nowFloat)
 	if err != nil {
 		return nil, err
 	}
@@ -152,4 +152,13 @@ func (srv *Server) PutContact(ctx context.Context, in *PutContactRequest) (*PutC
 	}
 
 	return in.PutContact(userID)
+}
+
+func (srv *Server) CreateGroupConversation(ctx context.Context, in *CreateGroupConversationRequest) (*CreateGroupConversationResponse, error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return in.CreateGroupConversation(userID)
 }

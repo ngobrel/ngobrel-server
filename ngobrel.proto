@@ -125,8 +125,22 @@ service Ngobrel {
     Gets the profile of a specific user ID
     */
     rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {};
+
+    /**
+    Verify OTP
+    */
+    rpc VerifyOTP(VerifyOTPRequest) returns (VerifyOTPResponse) {};
 }
 
+message VerifyOTPRequest {
+    string phoneNumber = 1;
+    string OTP = 2;
+    string deviceID = 3;
+}
+
+message VerifyOTPResponse {
+    string token = 1;
+}
 
 message CreateProfileRequest {
     string deviceID = 1;
@@ -135,6 +149,7 @@ message CreateProfileRequest {
 
 message CreateProfileResponse {
     string userID = 1;
+    string otpDebug = 2;
 }
 
 message EditProfileRequest {

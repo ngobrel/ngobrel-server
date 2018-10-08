@@ -4,10 +4,17 @@ package ngobrel
 import (
 	"context"
 	"database/sql"
+	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
+
+	"github.com/go-redis/redis"
+
+	"github.com/cespare/xxhash"
 
 	"os"
 
@@ -16,11 +23,40 @@ import (
 )
 
 var db *sql.DB
+var redisClient *redis.Client
 
 func InitDB() {
 	connStr := os.Getenv("DB_URL")
-	fmt.Println("COnnecting to DB " + connStr)
+	redisStr := os.Getenv("REDIS_URL")
+	fmt.Println("Connecting to DB " + connStr + " and redis: " + redisStr)
 	db, _ = sql.Open("postgres", connStr)
+
+	redisClient = redis.NewClient(&redis.Options{
+		Addr:     redisStr,
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	pong, err := redisClient.Ping().Result()
+	log.Println(pong, err)
+}
+
+func getUserIDFromToken(token string) (string, error) {
+	val, err := redisClient.Get("UID-" + token).Result()
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+	return val, nil
+}
+
+func getDeviceIDFromToken(token string) (string, error) {
+	val, err := redisClient.Get("DEV-" + token).Result()
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+	return val, nil
 }
 
 func (req *PutMessageRequest) putMessageToUserIDCheckGroup(srv *Server, senderID uuid.UUID, senderDeviceID uuid.UUID, recipientID uuid.UUID, now float64) error {
@@ -301,7 +337,7 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 	return result, nil
 }
 
-func (req *CreateProfileRequest) CreateProfile() (*CreateProfileResponse, error) {
+func (req *CreateProfileRequest) CreateProfile(srv *Server) (*CreateProfileResponse, error) {
 	rows, err := db.Query(`SELECT user_id FROM profile where phone_number=$1`, req.PhoneNumber)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -329,16 +365,36 @@ func (req *CreateProfileRequest) CreateProfile() (*CreateProfileResponse, error)
 	}
 
 	fmt.Println(userID + ":" + req.DeviceID + ":" + req.PhoneNumber)
-	_, err = db.Exec(`INSERT INTO devices (user_id, device_id, updated_at, created_at, device_state) values ($1, $2, now(), now(), 1)
-	ON CONFLICT (user_id, device_id) DO UPDATE SET user_id=$1, device_id=$2, updated_at=now() 
+	_, err = db.Exec(`INSERT INTO devices (user_id, device_id, updated_at, created_at, device_state) values ($1, $2, now(), now(), 0)
+	ON CONFLICT (user_id, device_id) DO UPDATE SET device_state=0, user_id=$1, device_id=$2, updated_at=now() 
 	`, userID, req.DeviceID)
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil, err
 	}
 
+	now := strconv.FormatInt(time.Now().UnixNano(), 10)
+	nowSlice := now[len(now)-4 : len(now)]
+	otpCode := fmt.Sprintf("%s", nowSlice)
+	//	otpCode = "1234" // XXX
+	otpHash := xxhash.Sum64String(req.PhoneNumber+otpCode) &^ (1 << 63)
+
+	smsMessage := fmt.Sprintf(SmsMessage, otpCode)
+	srv.smsClient.SendMessage(SmsSender, req.PhoneNumber, smsMessage)
+
+	log.Println("HASH:" + otpCode)
+	_, err = db.Exec(`INSERT INTO otp (otp_code, expired_at) values ($1, now() + interval '1 day')`, int64(otpHash))
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+
+	if DebugMode == false {
+		otpCode = ""
+	}
 	return &CreateProfileResponse{
-		UserID: userID,
+		UserID:   userID,
+		OtpDebug: otpCode, // DEBUG Mode
 	}, nil
 }
 
@@ -527,4 +583,96 @@ func (req *CreateGroupConversationRequest) CreateGroupConversation(userID uuid.U
 	return &CreateGroupConversationResponse{
 		GroupID: chatID.String(),
 	}, nil
+}
+
+func (req *VerifyOTPRequest) VerifyOTP() (*VerifyOTPResponse, error) {
+	log.Println("Verifying OTP: " + req.PhoneNumber)
+
+	uidRows, err := db.Query(`SELECT user_id FROM profile where phone_number=$1`, req.PhoneNumber)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	defer uidRows.Close()
+	var userID string
+	for uidRows.Next() {
+		err := uidRows.Scan(&userID)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+	}
+
+	if userID == "" {
+		return nil, errors.New("verification-otp-no-user-found")
+	}
+
+	devRows, err := db.Query(`SELECT device_id FROM devices where user_id=$1 AND device_id=$2`, userID, req.DeviceID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	defer devRows.Close()
+	var deviceID string
+	for devRows.Next() {
+		err := devRows.Scan(&deviceID)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+	}
+
+	if userID == "" {
+		return nil, errors.New("verification-otp-no-device-found")
+	}
+
+	otpHash := xxhash.Sum64String(req.PhoneNumber+req.OTP) &^ (1 << 63)
+	rows, err := db.Query(`DELETE FROM otp WHERE otp_code=$1 AND expired_at > now() RETURNING otp_code`, int64(otpHash))
+	if err != nil {
+		log.Println(err)
+		print("Omama")
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var dbOTPHash uint64
+
+		if err := rows.Scan(&dbOTPHash); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		if dbOTPHash == otpHash {
+
+			_, err := db.Exec(`UPDATE devices set updated_at = now(), device_state = 1 WHERE device_id=$1 AND user_id=$2`, deviceID, userID)
+			if err != nil {
+				log.Println(err)
+				return nil, err
+			}
+
+			b := make([]byte, 8)
+			binary.LittleEndian.PutUint64(b, uint64(time.Now().UnixNano()))
+			code := hex.EncodeToString(b)
+
+			binary.LittleEndian.PutUint64(b, otpHash)
+			code += hex.EncodeToString(b)
+
+			err = redisClient.Set("DEV-"+code, deviceID, 0).Err()
+			if err != nil {
+				log.Println(err)
+			}
+
+			err = redisClient.Set("UID-"+code, userID, 0).Err()
+			if err != nil {
+				log.Println(err)
+			}
+
+			return &VerifyOTPResponse{Token: code}, nil
+		}
+	}
+
+	return nil, errors.New("verification-otp-failed")
 }

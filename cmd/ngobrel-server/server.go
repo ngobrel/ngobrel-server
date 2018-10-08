@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -19,9 +20,12 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
+	smsClient := pb.NewTwilioSms()
+	smsClient.SetAccount(os.Getenv("SMS_ACCOUNT"), os.Getenv("SMS_TOKEN"))
+
 	pb.InitDB()
 	s := grpc.NewServer()
-	server := pb.NewServer()
+	server := pb.NewServer(smsClient)
 	pb.RegisterNgobrelServer(s, server)
 	// Register reflection service on gRPC server.
 	reflection.Register(s)

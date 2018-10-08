@@ -12,11 +12,13 @@ import (
 
 type Server struct {
 	receiptStream map[string]Ngobrel_GetMessageNotificationServer
+	smsClient     Sms
 }
 
-func NewServer() *Server {
+func NewServer(sms Sms) *Server {
 	return &Server{
 		receiptStream: make(map[string]Ngobrel_GetMessageNotificationServer),
+		smsClient:     sms,
 	}
 }
 
@@ -34,12 +36,38 @@ func getID(ctx context.Context, id string) (uuid.UUID, error) {
 	return uuid.FromString(idList[0])
 }
 
+func getToken(ctx context.Context) (string, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if ok == false {
+		return "", errors.New("no-metadata-available")
+	}
+
+	idList := md.Get("token")
+	if idList == nil || len(idList) == 0 || idList[0] == "" {
+		return "", errors.New("no-token-available")
+	}
+
+	return idList[0], nil
+}
+
 func getDeviceID(ctx context.Context) (uuid.UUID, error) {
-	return getID(ctx, "device-id")
+	token, err := getToken(ctx)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	id, err := getDeviceIDFromToken(token)
+	return uuid.FromString(id)
 }
 
 func getUserID(ctx context.Context) (uuid.UUID, error) {
-	return getID(ctx, "user-id")
+	token, err := getToken(ctx)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	id, err := getUserIDFromToken(token)
+	return uuid.FromString(id)
 }
 
 func (srv *Server) GetMessageNotification(in *GetMessagesRequest, stream Ngobrel_GetMessageNotificationServer) error {
@@ -126,7 +154,7 @@ func (srv *Server) UpdateConversation(ctx context.Context, in *UpdateConversatio
 }
 
 func (srv *Server) CreateProfile(ctx context.Context, in *CreateProfileRequest) (*CreateProfileResponse, error) {
-	return in.CreateProfile()
+	return in.CreateProfile(srv)
 }
 
 func (srv *Server) EditProfile(ctx context.Context, in *EditProfileRequest) (*EditProfileResponse, error) {
@@ -161,4 +189,9 @@ func (srv *Server) CreateGroupConversation(ctx context.Context, in *CreateGroupC
 	}
 
 	return in.CreateGroupConversation(userID)
+}
+
+func (srv *Server) VerifyOTP(ctx context.Context, in *VerifyOTPRequest) (*VerifyOTPResponse, error) {
+
+	return in.VerifyOTP()
 }

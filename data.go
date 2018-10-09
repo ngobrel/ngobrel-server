@@ -128,7 +128,7 @@ func (req *PutMessageRequest) putMessageToGroupMember(srv *Server, tx *sql.Tx, s
 		}
 
 		_, err = tx.Exec(`
-		INSERT INTO chat_list (user_id, chat_id, created_at, updated_at, excerpt) values ($3, $2, now(), now(), $1) ON CONFLICT (user_id, chat_id) DO UPDATE SET excerpt=$1, updated_at=now()`,
+		INSERT INTO chat_list (user_id, chat_id, created_at, updated_at, excerpt, chat_type) values ($3, $2, now(), now(), $1, 1) ON CONFLICT (user_id, chat_id) DO UPDATE SET excerpt=$1, updated_at=now()`,
 			req.MessageExcerpt, chatID.String(), recipientID.String())
 
 		if err != nil {
@@ -167,13 +167,6 @@ func (req *PutMessageRequest) putMessageToUserID(srv *Server, tx *sql.Tx, isGrou
 			if err != nil {
 				fmt.Println(err)
 			}
-			_, err = tx.Exec(`
-			INSERT INTO chat_list  (user_id, chat_id, created_at, updated_at, excerpt) values ($3, $2, now(), now(), $1) ON CONFLICT (user_id, chat_id) DO UPDATE SET excerpt=$1, updated_at=now()`,
-				req.MessageExcerpt, senderID.String(), recipientID.String())
-			if err != nil {
-				fmt.Println(err)
-			}
-
 		}
 	} else {
 		// XXX TODO Encrypted version
@@ -296,9 +289,9 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 	fmt.Println(userID.String())
 
 	rows, err := db.Query(`
-	SELECT b.excerpt, a.chat_id, a.title as chat_name, b.updated_at FROM group_list a, chat_list b WHERE a.chat_id = b.chat_id and b.user_id=$1
+	SELECT b.chat_type, b.excerpt, a.chat_id, a.title as chat_name, b.updated_at FROM group_list a, chat_list b WHERE a.chat_id = b.chat_id and b.user_id=$1
 	UNION ALL
-	SELECT b.excerpt, a.chat_id, a.name as chat_name,  b.updated_at FROM contacts a, chat_list b WHERE a.chat_id = b.chat_id and a.user_id = b.user_id and b.user_id=$1
+	SELECT b.chat_type, b.excerpt, a.chat_id, a.name as chat_name,  b.updated_at FROM contacts a, chat_list b WHERE a.chat_id = b.chat_id and a.user_id = b.user_id and b.user_id=$1
 	ORDER BY updated_at DESC
 	`, userID.String())
 	if err != nil {
@@ -309,13 +302,14 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 	var list []*Conversations = []*Conversations{}
 	for rows.Next() {
 		var chatID uuid.UUID
-		//var chatType int
+		var chatType int32
 		var chatName string
 		var excerpt string
+
 		//var notification int64
 		var updatedAt time.Time
 
-		if err := rows.Scan(&excerpt, &chatID,
+		if err := rows.Scan(&chatType, &excerpt, &chatID,
 			&chatName,
 			&updatedAt); err != nil {
 			return nil, err
@@ -327,13 +321,15 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 			//Notification: int64(notification),
 			ChatName: chatName,
 			Excerpt:  excerpt,
+			ChatType: chatType,
 		}
 		list = append(list, item)
 	}
-	log.Println(list)
 	result := &ListConversationsResponse{
 		List: list,
 	}
+	log.Println(result)
+
 	return result, nil
 }
 
@@ -557,7 +553,7 @@ func (req *CreateGroupConversationRequest) CreateGroupConversation(userID uuid.U
 		log.Println(execErr)
 		return nil, errors.New("error-creating-group-table")
 	}
-	_, execErr = tx.Exec(`INSERT INTO chat_list (user_id, chat_id, created_at, updated_at) values ($1, $2, now(), now())`, userID.String(), chatID.String())
+	_, execErr = tx.Exec(`INSERT INTO chat_list (user_id, chat_id, created_at, updated_at, chat_type) values ($1, $2, now(), now(), 1)`, userID.String(), chatID.String())
 	if execErr != nil {
 		_ = tx.Rollback()
 
@@ -567,7 +563,7 @@ func (req *CreateGroupConversationRequest) CreateGroupConversation(userID uuid.U
 
 	for _, participant := range req.Participants {
 
-		_, execErr := tx.Exec(`INSERT INTO chat_list (user_id, chat_id, created_at, updated_at) values ($1, $2, now(), now())`, participant.UserID, chatID.String())
+		_, execErr := tx.Exec(`INSERT INTO chat_list (user_id, chat_id, created_at, updated_at, chat_type) values ($1, $2, now(), now(), 1)`, participant.UserID, chatID.String())
 		if execErr != nil {
 			_ = tx.Rollback()
 

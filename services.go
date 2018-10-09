@@ -132,7 +132,6 @@ func (srv *Server) ListConversations(ctx context.Context, in *ListConversationsR
 	}
 
 	return in.ListConversations(userID)
-
 }
 
 func (srv *Server) GetContacts(ctx context.Context, in *GetContactsRequest) (*GetContactsResponse, error) {

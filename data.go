@@ -289,9 +289,9 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 	fmt.Println(userID.String())
 
 	rows, err := db.Query(`
-	SELECT b.chat_type, b.excerpt, a.chat_id, a.title as chat_name, b.updated_at FROM group_list a, chat_list b WHERE a.chat_id = b.chat_id and b.user_id=$1
+	SELECT b.is_admin, b.chat_type, b.excerpt, a.chat_id, a.title as chat_name, b.updated_at FROM group_list a, chat_list b WHERE a.chat_id = b.chat_id and b.user_id=$1
 	UNION ALL
-	SELECT b.chat_type, b.excerpt, a.chat_id, a.name as chat_name,  b.updated_at FROM contacts a, chat_list b WHERE a.chat_id = b.chat_id and a.user_id = b.user_id and b.user_id=$1
+	SELECT b.is_admin, b.chat_type, b.excerpt, a.chat_id, a.name as chat_name,  b.updated_at FROM contacts a, chat_list b WHERE a.chat_id = b.chat_id and a.user_id = b.user_id and b.user_id=$1
 	ORDER BY updated_at DESC
 	`, userID.String())
 	if err != nil {
@@ -305,11 +305,12 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 		var chatType int32
 		var chatName string
 		var excerpt string
+		var isAdmin int32
 
 		//var notification int64
 		var updatedAt time.Time
 
-		if err := rows.Scan(&chatType, &excerpt, &chatID,
+		if err := rows.Scan(&isAdmin, &chatType, &excerpt, &chatID,
 			&chatName,
 			&updatedAt); err != nil {
 			return nil, err
@@ -319,9 +320,10 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 			ChatID:    chatID.String(),
 			Timestamp: updatedAt.UnixNano() / 1000000,
 			//Notification: int64(notification),
-			ChatName: chatName,
-			Excerpt:  excerpt,
-			ChatType: chatType,
+			ChatName:     chatName,
+			Excerpt:      excerpt,
+			ChatType:     chatType,
+			IsGroupAdmin: isAdmin == 1,
 		}
 		list = append(list, item)
 	}
@@ -553,7 +555,7 @@ func (req *CreateGroupConversationRequest) CreateGroupConversation(userID uuid.U
 		log.Println(execErr)
 		return nil, errors.New("error-creating-group-table")
 	}
-	_, execErr = tx.Exec(`INSERT INTO chat_list (user_id, chat_id, created_at, updated_at, chat_type) values ($1, $2, now(), now(), 1)`, userID.String(), chatID.String())
+	_, execErr = tx.Exec(`INSERT INTO chat_list (user_id, chat_id, created_at, updated_at, chat_type, is_admin) values ($1, $2, now(), now(), 1, 1)`, userID.String(), chatID.String())
 	if execErr != nil {
 		_ = tx.Rollback()
 
@@ -671,4 +673,211 @@ func (req *VerifyOTPRequest) VerifyOTP() (*VerifyOTPResponse, error) {
 	}
 
 	return nil, errors.New("verification-otp-failed")
+}
+
+func (req *ListGroupParticipantsRequest) ListGroupParticipants(userID uuid.UUID) (*ListGroupParticipantsResponse, error) {
+
+	var foundGroupID string
+	foundRow, err := db.Query(`SELECT chat_id FROM chat_list where user_id=$1 AND chat_id=$2`, userID, req.GroupID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	defer foundRow.Close()
+	for foundRow.Next() {
+
+		if err := foundRow.Scan(&foundGroupID); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+	}
+
+	if foundGroupID != req.GroupID {
+		err := errors.New("group-not-found")
+		log.Println(err)
+		return nil, err
+	}
+
+	membersRow, err := db.Query(`
+	SELECT p.user_id, g.is_admin, p.name, p.user_name, p.custom_data, p.phone_number
+	FROM chat_list g, profile p
+	WHERE 
+	g.user_id=p.user_id AND
+	chat_id=$1`, req.GroupID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	defer membersRow.Close()
+
+	var list []*GroupParticipant = []*GroupParticipant{}
+
+	for membersRow.Next() {
+		var memberID string
+		var isAdmin int
+		var memberName sql.NullString
+		var userName sql.NullString
+		var customData sql.NullString
+		var phoneNumber string
+		if err := membersRow.Scan(&memberID, &isAdmin, &memberName, &userName, &customData, &phoneNumber); err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		participant := &GroupParticipant{
+			UserID:      memberID,
+			IsAdmin:     (isAdmin == 1),
+			Name:        memberName.String,
+			UserName:    userName.String,
+			CustomData:  customData.String,
+			PhoneNumber: phoneNumber,
+		}
+		list = append(list, participant)
+	}
+
+	return &ListGroupParticipantsResponse{Participants: list}, nil
+}
+
+func isGroupAdmin(userID, groupID string) (bool, error) {
+	var foundGroupID string
+	foundRow, err := db.Query(`SELECT chat_id FROM chat_list where is_admin=1 AND user_id=$1 AND chat_id=$2`, userID, groupID)
+	if err != nil {
+		log.Println(err)
+		return false, err
+	}
+
+	defer foundRow.Close()
+	for foundRow.Next() {
+		if err := foundRow.Scan(&foundGroupID); err != nil {
+			log.Println(err)
+			return false, err
+		}
+	}
+
+	return foundGroupID == groupID, nil
+}
+
+func (req *RemoveAdminRoleRequest) RemoveAdminRole(userID uuid.UUID) (*RemoveAdminRoleResponse, error) {
+	log.Println("Remove admin role")
+
+	isGroupAdmin, err := isGroupAdmin(userID.String(), req.GroupID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	if isGroupAdmin == false {
+		err := errors.New("not-an-admin")
+		return nil, err
+	}
+
+	result, err := db.Exec(`UPDATE chat_list SET is_admin=0 WHERE is_admin=1 AND user_id=$1 AND chat_id=$2`, req.UserID, req.GroupID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	count, err := result.RowsAffected()
+
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	success := false
+	if count == 1 {
+		success = true
+	}
+
+	return &RemoveAdminRoleResponse{Success: success}, nil
+}
+
+func (req *RemoveFromGroupRequest) RemoveFromGroup(userID uuid.UUID) (*RemoveFromGroupResponse, error) {
+	isGroupAdmin, err := isGroupAdmin(userID.String(), req.GroupID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	if isGroupAdmin == false {
+		err := errors.New("not-an-admin")
+		return nil, err
+	}
+
+	result, err := db.Exec(`DELETE FROM chat_list WHERE user_id=$1 AND chat_id=$2`, req.UserID, req.GroupID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	success := false
+	if count == 1 {
+		success = true
+	}
+
+	return &RemoveFromGroupResponse{Success: success}, nil
+}
+
+func (req *ExitFromGroupRequest) ExitFromGroup(userID uuid.UUID) (*ExitFromGroupResponse, error) {
+	result, err := db.Exec(`DELETE FROM chat_list WHERE user_id=$1 AND chat_id=$2`, userID, req.GroupID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	success := false
+	if count == 1 {
+		success = true
+	}
+
+	return &ExitFromGroupResponse{Success: success}, nil
+}
+
+func (req *AddToGroupRequest) AddToGroup(userID uuid.UUID) (*AddToGroupResponse, error) {
+	isGroupAdmin, err := isGroupAdmin(userID.String(), req.GroupID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	if isGroupAdmin == false {
+		err := errors.New("not-an-admin")
+		return nil, err
+	}
+
+	ctx := context.Background()
+
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Println(err)
+	}
+
+	for _, participant := range req.Participants {
+		_, execErr := tx.Exec(`INSERT INTO chat_list (user_id, chat_id, created_at, updated_at, chat_type) values ($1, $2, now(), now(), 1)`, participant.UserID, req.GroupID)
+		if execErr != nil {
+			_ = tx.Rollback()
+
+			log.Println(execErr)
+			return nil, errors.New("error-add-group-when-inserting-participant")
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Println(err)
+	}
+
+	return &AddToGroupResponse{
+		GroupID: req.GroupID,
+	}, nil
 }

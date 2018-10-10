@@ -67,10 +67,30 @@ service Ngobrel {
     rpc UpdateConversation(UpdateConversationRequest) returns (UpdateConversationResponse) {}
 
     /**
+    Lists all participants in a group
+    */
+    rpc ListGroupParticipants(ListGroupParticipantsRequest) returns (ListGroupParticipantsResponse) {}
+
+    /**
+    Removes an admin role of a group from a user
+    */
+    rpc RemoveAdminRole(RemoveAdminRoleRequest) returns (RemoveAdminRoleResponse) {}
+
+    /**
+    Removes a user from a group
+    */
+    rpc RemoveFromGroup(RemoveFromGroupRequest) returns (RemoveFromGroupResponse) {}
+
+    /**
     Invite other people into a conversation
     */
-//    rpc PutIntoConversation(PutIntoConversationRequest) returns (PutIntoConversationResponse) {}
+    rpc AddToGroup(AddToGroupRequest) returns (AddToGroupResponse) {}
     
+    /**
+    Exits from a group
+    */
+    rpc ExitFromGroup(ExitFromGroupRequest) returns (ExitFromGroupResponse) {}
+
     /**
     Delete a conversation. For group conversation this means leaving the group.
     */
@@ -132,6 +152,40 @@ service Ngobrel {
     rpc VerifyOTP(VerifyOTPRequest) returns (VerifyOTPResponse) {};
 }
 
+message ExitFromGroupRequest {
+    string groupID = 1;
+}
+
+message ExitFromGroupResponse {
+    bool success = 1;
+}
+
+message RemoveAdminRoleRequest {
+    string groupID = 1;
+    string userID = 2;
+}
+
+message RemoveAdminRoleResponse {
+    bool success = 1;
+}
+
+message RemoveFromGroupRequest {
+    string groupID = 1;
+    string userID = 2;
+}
+
+message RemoveFromGroupResponse {
+    bool success = 1;
+}
+
+message ListGroupParticipantsRequest {
+    string groupID = 1;
+}
+
+message ListGroupParticipantsResponse {
+    repeated GroupParticipant participants = 1; 
+}
+
 message VerifyOTPRequest {
     string phoneNumber = 1;
     string OTP = 2;
@@ -190,7 +244,8 @@ message Conversations {
     string excerpt = 3;
     int64 timestamp = 4;
     int64 notification = 5;
-    int32 chatType = 6;    
+    int32 chatType = 6;
+    bool isGroupAdmin = 7;
 }
 
 message UpdateConversationRequest {
@@ -319,13 +374,13 @@ message DeleteConversationResponse {
     string message = 2;
 }
 
-message PutIntoConversationRequest {
-    string userID = 1;
-    string conversationID = 2;
+message AddToGroupRequest {
+    string groupID = 1;
+    repeated GroupParticipant participants = 2;
 }
 
-message PutIntoConversationResponse {
-    string conversationID = 1;
+message  AddToGroupResponse {
+    string groupID = 1;
 }
 
 message UploadMediaRequest {
@@ -402,6 +457,11 @@ message PutKeysResponse {
 
 message GroupParticipant {
     string userID = 1;
+    string name = 2;
+    string phoneNumber = 3;
+    string user_name = 4;
+    string customData = 5;
+    bool isAdmin = 6;
 }
 message CreateGroupConversationRequest {
     string name  = 1;

@@ -9,3 +9,5 @@ CREATE TABLE chat_list (
   is_admin INT default 0,
   PRIMARY KEY (user_id, chat_id)
 );
+
+CREATE INDEX chat_list_user_id_chat_id on conversations(user_id, chat_id);

@@ -2,6 +2,7 @@ package ngobrel
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -193,4 +194,63 @@ func (srv *Server) CreateGroupConversation(ctx context.Context, in *CreateGroupC
 func (srv *Server) VerifyOTP(ctx context.Context, in *VerifyOTPRequest) (*VerifyOTPResponse, error) {
 
 	return in.VerifyOTP()
+}
+
+func (srv *Server) ListGroupParticipants(ctx context.Context, in *ListGroupParticipantsRequest) (*ListGroupParticipantsResponse, error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return in.ListGroupParticipants(userID)
+}
+
+func (srv *Server) RemoveAdminRole(ctx context.Context, in *RemoveAdminRoleRequest) (*RemoveAdminRoleResponse, error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	if userID.String() == in.UserID {
+		err := errors.New("remove-admin-role-cant-remove-self")
+		return nil, err
+	}
+
+	return in.RemoveAdminRole(userID)
+}
+
+func (srv *Server) RemoveFromGroup(ctx context.Context, in *RemoveFromGroupRequest) (*RemoveFromGroupResponse, error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	if userID.String() == in.UserID {
+		err := errors.New("remove-from-group-cant-remove-self")
+		return nil, err
+	}
+
+	return in.RemoveFromGroup(userID)
+}
+
+func (srv *Server) AddToGroup(ctx context.Context, in *AddToGroupRequest) (*AddToGroupResponse, error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return in.AddToGroup(userID)
+}
+
+func (srv *Server) ExitFromGroup(ctx context.Context, in *ExitFromGroupRequest) (*ExitFromGroupResponse, error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return in.ExitFromGroup(userID)
 }

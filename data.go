@@ -845,6 +845,37 @@ func (req *ExitFromGroupRequest) ExitFromGroup(userID uuid.UUID) (*ExitFromGroup
 	return &ExitFromGroupResponse{Success: success}, nil
 }
 
+func (req *RenameGroupRequest) RenameGroup(userID uuid.UUID) (*RenameGroupResponse, error) {
+	isGroupAdmin, err := isGroupAdmin(userID.String(), req.GroupID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	if isGroupAdmin == false {
+		err := errors.New("not-an-admin")
+		return nil, err
+	}
+
+	result, err := db.Exec(`UPDATE group_list SET title=$1 WHERE chat_id=$2`, req.NewName, req.GroupID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	count, err := result.RowsAffected()
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	success := false
+	if count == 1 {
+		success = true
+	}
+
+	return &RenameGroupResponse{Success: success}, nil
+}
+
 func (req *AddToGroupRequest) AddToGroup(userID uuid.UUID) (*AddToGroupResponse, error) {
 	isGroupAdmin, err := isGroupAdmin(userID.String(), req.GroupID)
 	if err != nil {

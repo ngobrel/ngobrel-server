@@ -254,3 +254,13 @@ func (srv *Server) ExitFromGroup(ctx context.Context, in *ExitFromGroupRequest) 
 
 	return in.ExitFromGroup(userID)
 }
+
+func (srv *Server) RenameGroup(ctx context.Context, in *RenameGroupRequest) (*RenameGroupResponse, error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return in.RenameGroup(userID)
+}

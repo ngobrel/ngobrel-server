@@ -92,6 +92,11 @@ service Ngobrel {
     rpc ExitFromGroup(ExitFromGroupRequest) returns (ExitFromGroupResponse) {}
 
     /**
+    Renames a group name
+    */
+    rpc RenameGroup(RenameGroupRequest) returns (RenameGroupResponse) {}
+
+    /**
     Delete a conversation. For group conversation this means leaving the group.
     */
 //    rpc DeleteConversation(DeleteConversationRequest) returns (DeleteConversationResponse) {}
@@ -150,6 +155,15 @@ service Ngobrel {
     Verify OTP
     */
     rpc VerifyOTP(VerifyOTPRequest) returns (VerifyOTPResponse) {};
+}
+
+message RenameGroupRequest {
+    string groupID = 1;
+    string newName = 2;
+}
+
+message RenameGroupResponse {
+    bool success = 1;
 }
 
 message ExitFromGroupRequest {

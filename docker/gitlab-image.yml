@@ -7,6 +7,7 @@ services:
       context: ..
       dockerfile: docker/tasks/build-server/Dockerfile
   ngobrel-server:
+    image: ${PROJECTIMAGE}:latest
     build:
       context: ..
       dockerfile: docker/tasks/ngobrel-server/Dockerfile

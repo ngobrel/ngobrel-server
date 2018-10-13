@@ -1,3 +1,4 @@
 mod
+docker/ngobrel-server
 deploy/migrate.linux-amd64
 deploy/migrate.linux-amd64.tar.gz

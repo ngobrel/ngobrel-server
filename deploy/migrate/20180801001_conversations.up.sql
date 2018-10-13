@@ -1,8 +1,7 @@
 
 CREATE TABLE conversations (
   recipient_id UUID not null,
-  message_id BIG
-  INT not null,
+  message_id BIGINT not null,
   sender_id UUID not null,
   sender_device_id UUID not null,
   recipient_device_id UUID not null,

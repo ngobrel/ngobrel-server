@@ -1,0 +1,31 @@
+image: golang:1.11beta2-alpine
+
+services:
+ - docker:dind
+
+# IMPORTANT:
+# Prepare a variable called PROJECTIMAGE to set the image name
+# PROJECTIMAGE: registry.gitlab.com/group/project/ngobrel-server
+
+variables:
+  GO111MODULE: "on"
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+  DOCKER_COMPOSE_VERSION: 1.22.0
+
+before_script:
+  - apk update && apk add git gcc musl-dev docker
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+  - apk add py-pip py-yaml && pip install -U docker-compose==${DOCKER_COMPOSE_VERSION}
+  
+stages:
+    - build
+
+compile:
+    stage: build
+    script:
+      - docker-compose -f docker/gitlab-image.yml build build-server
+      - docker-compose -f docker/gitlab-image.yml run build-server
+      - docker-compose -f docker/gitlab-image.yml build ngobrel-server
+      - docker push ${PROJECTIMAGE}:latest
+      

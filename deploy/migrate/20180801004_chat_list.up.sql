@@ -10,4 +10,4 @@ CREATE TABLE chat_list (
   PRIMARY KEY (user_id, chat_id)
 );
 
-CREATE INDEX chat_list_user_id_chat_id on conversations(user_id, chat_id);
+CREATE INDEX chat_list_user_id_chat_id on chat_list(user_id, chat_id);

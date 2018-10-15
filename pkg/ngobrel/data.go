@@ -450,9 +450,10 @@ func (req *GetProfileRequest) GetProfile(userID uuid.UUID) (*GetProfileResponse,
 }
 
 func (req *PutContactRequest) PutContact(userID uuid.UUID) (*PutContactResponse, error) {
+	log.Println("PutContact " + userID.String())
 	rows, err := db.Query(`SELECT user_id FROM profile where phone_number=$1`, req.PhoneNumber)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err)
 		return nil, err
 	}
 
@@ -461,7 +462,7 @@ func (req *PutContactRequest) PutContact(userID uuid.UUID) (*PutContactResponse,
 	for rows.Next() {
 		err := rows.Scan(&peerID)
 		if err != nil {
-			fmt.Println(err.Error())
+			log.Println(err)
 			return nil, err
 		}
 	}
@@ -478,6 +479,7 @@ func (req *PutContactRequest) PutContact(userID uuid.UUID) (*PutContactResponse,
 											`,
 		userID.String(), peerID, req.ContactData.Name)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 

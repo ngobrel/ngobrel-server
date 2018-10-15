@@ -57,6 +57,11 @@ func (t *TwilioSms) SendMessage(from string, to string, message string) error {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := client.Do(req)
+	if err != nil {
+		log.Println("Error connecting to Twilio")
+		log.Println(err)
+		return err
+	}
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		var data map[string]interface{}
 		decoder := json.NewDecoder(resp.Body)

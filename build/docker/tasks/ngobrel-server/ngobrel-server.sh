@@ -6,8 +6,8 @@ fi
 
 
 echo "Deploying DB...."
-cd /deploy
-./deploy.sh
+cd /migrate
+./migrate.sh
 
 echo "Running server..."
 

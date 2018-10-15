@@ -5,7 +5,6 @@ require (
 	github.com/cespare/xxhash v1.0.0
 	github.com/go-redis/redis v6.14.1+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
-	github.com/golang/mock v1.1.1
 	github.com/golang/protobuf v1.2.0
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/lib/pq v0.0.0-20180523175426-90697d60dd84

@@ -1,0 +1,13 @@
+version: '3.2'
+services:
+  build-server:
+    volumes:
+      - ./:/srv
+    build:
+      context: ../..
+      dockerfile: build/docker/tasks/build-server/Dockerfile
+  ngobrel-server:
+    image: ${IMAGE_TAG}
+    build:
+      context: ../..
+      dockerfile: build/docker/tasks/ngobrel-server/Dockerfile

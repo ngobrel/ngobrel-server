@@ -364,21 +364,37 @@ func (req *CreateProfileRequest) CreateProfile(srv *Server) (*CreateProfileRespo
 		}
 	}
 
+	ctx := context.Background()
+
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Println(err)
+	}
+
 	if len(userID) == 0 {
 		newUUID := uuid.Must(uuid.NewV4(), nil)
 		userID = newUUID.String()
-		_, err = db.Exec(`INSERT INTO profile (user_id, phone_number, created_at, updated_at) values ($1, $2, now(), now());`, userID, req.PhoneNumber)
+		_, err = tx.Exec(`INSERT INTO profile (user_id, phone_number, created_at, updated_at) values ($1, $2, now(), now());`, userID, req.PhoneNumber)
 		if err != nil {
+			_ = tx.Rollback()
 			fmt.Println(err.Error())
 			return nil, err
 		}
 	}
 
 	fmt.Println(userID + ":" + req.DeviceID + ":" + req.PhoneNumber)
-	_, err = db.Exec(`INSERT INTO devices (user_id, device_id, updated_at, created_at, device_state) values ($1, $2, now(), now(), 0)
+	_, err = tx.Exec(`UPDATE devices set updated_at = now(), device_state = 0 WHERE device_id != $1 AND user_id=$2`, req.DeviceID, userID)
+	if err != nil {
+		_ = tx.Rollback()
+		log.Println(err)
+		return nil, err
+	}
+
+	_, err = tx.Exec(`INSERT INTO devices (user_id, device_id, updated_at, created_at, device_state) values ($1, $2, now(), now(), 0)
 	ON CONFLICT (user_id, device_id) DO UPDATE SET device_state=0, user_id=$1, device_id=$2, updated_at=now() 
 	`, userID, req.DeviceID)
 	if err != nil {
+		_ = tx.Rollback()
 		fmt.Println(err.Error())
 		return nil, err
 	}
@@ -393,8 +409,9 @@ func (req *CreateProfileRequest) CreateProfile(srv *Server) (*CreateProfileRespo
 	srv.smsClient.SendMessage(SmsSender, req.PhoneNumber, smsMessage)
 
 	log.Println("HASH:" + otpCode)
-	_, err = db.Exec(`INSERT INTO otp (otp_code, expired_at) values ($1, now() + interval '1 day')`, int64(otpHash))
+	_, err = tx.Exec(`INSERT INTO otp (otp_code, expired_at) values ($1, now() + interval '1 day')`, int64(otpHash))
 	if err != nil {
+		_ = tx.Rollback()
 		fmt.Println(err.Error())
 		return nil, err
 	}
@@ -402,6 +419,11 @@ func (req *CreateProfileRequest) CreateProfile(srv *Server) (*CreateProfileRespo
 	if DebugMode == false {
 		otpCode = ""
 	}
+
+	if err := tx.Commit(); err != nil {
+		log.Println(err)
+	}
+
 	return &CreateProfileResponse{
 		UserID:   userID,
 		OtpDebug: otpCode, // DEBUG Mode

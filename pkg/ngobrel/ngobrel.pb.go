@@ -23,32 +23,6 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
-type PutContactStatus int32
-
-const (
-	PutContactStatus_Success                 PutContactStatus = 0
-	PutContactStatus_GeneralError            PutContactStatus = 1
-	PutContactStatus_ContactIsNotInTheSystem PutContactStatus = 2
-)
-
-var PutContactStatus_name = map[int32]string{
-	0: "Success",
-	1: "GeneralError",
-	2: "ContactIsNotInTheSystem",
-}
-var PutContactStatus_value = map[string]int32{
-	"Success":                 0,
-	"GeneralError":            1,
-	"ContactIsNotInTheSystem": 2,
-}
-
-func (x PutContactStatus) String() string {
-	return proto.EnumName(PutContactStatus_name, int32(x))
-}
-func (PutContactStatus) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{0}
-}
-
 type ConversationType int32
 
 const (
@@ -72,7 +46,7 @@ func (x ConversationType) String() string {
 	return proto.EnumName(ConversationType_name, int32(x))
 }
 func (ConversationType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{1}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{0}
 }
 
 type MessageState int32
@@ -95,7 +69,7 @@ func (x MessageState) String() string {
 	return proto.EnumName(MessageState_name, int32(x))
 }
 func (MessageState) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{2}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{1}
 }
 
 type MessageReceptionState int32
@@ -124,33 +98,159 @@ func (x MessageReceptionState) String() string {
 	return proto.EnumName(MessageReceptionState_name, int32(x))
 }
 func (MessageReceptionState) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{3}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{2}
 }
 
-type UploadMediaStatus int32
-
-const (
-	UploadMediaStatus_Uploading UploadMediaStatus = 0
-	UploadMediaStatus_Done      UploadMediaStatus = 1
-	UploadMediaStatus_Error     UploadMediaStatus = 2
-)
-
-var UploadMediaStatus_name = map[int32]string{
-	0: "Uploading",
-	1: "Done",
-	2: "Error",
-}
-var UploadMediaStatus_value = map[string]int32{
-	"Uploading": 0,
-	"Done":      1,
-	"Error":     2,
+type GetProfilePictureRequest struct {
+	UserID               string   `protobuf:"bytes,1,opt,name=userID,proto3" json:"userID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (x UploadMediaStatus) String() string {
-	return proto.EnumName(UploadMediaStatus_name, int32(x))
+func (m *GetProfilePictureRequest) Reset()         { *m = GetProfilePictureRequest{} }
+func (m *GetProfilePictureRequest) String() string { return proto.CompactTextString(m) }
+func (*GetProfilePictureRequest) ProtoMessage()    {}
+func (*GetProfilePictureRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{0}
 }
-func (UploadMediaStatus) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{4}
+func (m *GetProfilePictureRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetProfilePictureRequest.Unmarshal(m, b)
+}
+func (m *GetProfilePictureRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetProfilePictureRequest.Marshal(b, m, deterministic)
+}
+func (dst *GetProfilePictureRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetProfilePictureRequest.Merge(dst, src)
+}
+func (m *GetProfilePictureRequest) XXX_Size() int {
+	return xxx_messageInfo_GetProfilePictureRequest.Size(m)
+}
+func (m *GetProfilePictureRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetProfilePictureRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetProfilePictureRequest proto.InternalMessageInfo
+
+func (m *GetProfilePictureRequest) GetUserID() string {
+	if m != nil {
+		return m.UserID
+	}
+	return ""
+}
+
+type GetProfilePictureResponse struct {
+	Contents             []byte   `protobuf:"bytes,1,opt,name=contents,proto3" json:"contents,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetProfilePictureResponse) Reset()         { *m = GetProfilePictureResponse{} }
+func (m *GetProfilePictureResponse) String() string { return proto.CompactTextString(m) }
+func (*GetProfilePictureResponse) ProtoMessage()    {}
+func (*GetProfilePictureResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{1}
+}
+func (m *GetProfilePictureResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetProfilePictureResponse.Unmarshal(m, b)
+}
+func (m *GetProfilePictureResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetProfilePictureResponse.Marshal(b, m, deterministic)
+}
+func (dst *GetProfilePictureResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetProfilePictureResponse.Merge(dst, src)
+}
+func (m *GetProfilePictureResponse) XXX_Size() int {
+	return xxx_messageInfo_GetProfilePictureResponse.Size(m)
+}
+func (m *GetProfilePictureResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetProfilePictureResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetProfilePictureResponse proto.InternalMessageInfo
+
+func (m *GetProfilePictureResponse) GetContents() []byte {
+	if m != nil {
+		return m.Contents
+	}
+	return nil
+}
+
+type EchoRequest struct {
+	Message              string   `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *EchoRequest) Reset()         { *m = EchoRequest{} }
+func (m *EchoRequest) String() string { return proto.CompactTextString(m) }
+func (*EchoRequest) ProtoMessage()    {}
+func (*EchoRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{2}
+}
+func (m *EchoRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_EchoRequest.Unmarshal(m, b)
+}
+func (m *EchoRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_EchoRequest.Marshal(b, m, deterministic)
+}
+func (dst *EchoRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EchoRequest.Merge(dst, src)
+}
+func (m *EchoRequest) XXX_Size() int {
+	return xxx_messageInfo_EchoRequest.Size(m)
+}
+func (m *EchoRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_EchoRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EchoRequest proto.InternalMessageInfo
+
+func (m *EchoRequest) GetMessage() string {
+	if m != nil {
+		return m.Message
+	}
+	return ""
+}
+
+type EchoResponse struct {
+	Reply                string   `protobuf:"bytes,1,opt,name=reply,proto3" json:"reply,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *EchoResponse) Reset()         { *m = EchoResponse{} }
+func (m *EchoResponse) String() string { return proto.CompactTextString(m) }
+func (*EchoResponse) ProtoMessage()    {}
+func (*EchoResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{3}
+}
+func (m *EchoResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_EchoResponse.Unmarshal(m, b)
+}
+func (m *EchoResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_EchoResponse.Marshal(b, m, deterministic)
+}
+func (dst *EchoResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EchoResponse.Merge(dst, src)
+}
+func (m *EchoResponse) XXX_Size() int {
+	return xxx_messageInfo_EchoResponse.Size(m)
+}
+func (m *EchoResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_EchoResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EchoResponse proto.InternalMessageInfo
+
+func (m *EchoResponse) GetReply() string {
+	if m != nil {
+		return m.Reply
+	}
+	return ""
 }
 
 type RenameGroupRequest struct {
@@ -165,7 +265,7 @@ func (m *RenameGroupRequest) Reset()         { *m = RenameGroupRequest{} }
 func (m *RenameGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*RenameGroupRequest) ProtoMessage()    {}
 func (*RenameGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{0}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{4}
 }
 func (m *RenameGroupRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RenameGroupRequest.Unmarshal(m, b)
@@ -210,7 +310,7 @@ func (m *RenameGroupResponse) Reset()         { *m = RenameGroupResponse{} }
 func (m *RenameGroupResponse) String() string { return proto.CompactTextString(m) }
 func (*RenameGroupResponse) ProtoMessage()    {}
 func (*RenameGroupResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{1}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{5}
 }
 func (m *RenameGroupResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RenameGroupResponse.Unmarshal(m, b)
@@ -248,7 +348,7 @@ func (m *ExitFromGroupRequest) Reset()         { *m = ExitFromGroupRequest{} }
 func (m *ExitFromGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*ExitFromGroupRequest) ProtoMessage()    {}
 func (*ExitFromGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{2}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{6}
 }
 func (m *ExitFromGroupRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ExitFromGroupRequest.Unmarshal(m, b)
@@ -286,7 +386,7 @@ func (m *ExitFromGroupResponse) Reset()         { *m = ExitFromGroupResponse{} }
 func (m *ExitFromGroupResponse) String() string { return proto.CompactTextString(m) }
 func (*ExitFromGroupResponse) ProtoMessage()    {}
 func (*ExitFromGroupResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{3}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{7}
 }
 func (m *ExitFromGroupResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ExitFromGroupResponse.Unmarshal(m, b)
@@ -325,7 +425,7 @@ func (m *RemoveAdminRoleRequest) Reset()         { *m = RemoveAdminRoleRequest{}
 func (m *RemoveAdminRoleRequest) String() string { return proto.CompactTextString(m) }
 func (*RemoveAdminRoleRequest) ProtoMessage()    {}
 func (*RemoveAdminRoleRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{4}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{8}
 }
 func (m *RemoveAdminRoleRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RemoveAdminRoleRequest.Unmarshal(m, b)
@@ -370,7 +470,7 @@ func (m *RemoveAdminRoleResponse) Reset()         { *m = RemoveAdminRoleResponse
 func (m *RemoveAdminRoleResponse) String() string { return proto.CompactTextString(m) }
 func (*RemoveAdminRoleResponse) ProtoMessage()    {}
 func (*RemoveAdminRoleResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{5}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{9}
 }
 func (m *RemoveAdminRoleResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RemoveAdminRoleResponse.Unmarshal(m, b)
@@ -409,7 +509,7 @@ func (m *RemoveFromGroupRequest) Reset()         { *m = RemoveFromGroupRequest{}
 func (m *RemoveFromGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*RemoveFromGroupRequest) ProtoMessage()    {}
 func (*RemoveFromGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{6}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{10}
 }
 func (m *RemoveFromGroupRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RemoveFromGroupRequest.Unmarshal(m, b)
@@ -454,7 +554,7 @@ func (m *RemoveFromGroupResponse) Reset()         { *m = RemoveFromGroupResponse
 func (m *RemoveFromGroupResponse) String() string { return proto.CompactTextString(m) }
 func (*RemoveFromGroupResponse) ProtoMessage()    {}
 func (*RemoveFromGroupResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{7}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{11}
 }
 func (m *RemoveFromGroupResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RemoveFromGroupResponse.Unmarshal(m, b)
@@ -492,7 +592,7 @@ func (m *ListGroupParticipantsRequest) Reset()         { *m = ListGroupParticipa
 func (m *ListGroupParticipantsRequest) String() string { return proto.CompactTextString(m) }
 func (*ListGroupParticipantsRequest) ProtoMessage()    {}
 func (*ListGroupParticipantsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{8}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{12}
 }
 func (m *ListGroupParticipantsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListGroupParticipantsRequest.Unmarshal(m, b)
@@ -530,7 +630,7 @@ func (m *ListGroupParticipantsResponse) Reset()         { *m = ListGroupParticip
 func (m *ListGroupParticipantsResponse) String() string { return proto.CompactTextString(m) }
 func (*ListGroupParticipantsResponse) ProtoMessage()    {}
 func (*ListGroupParticipantsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{9}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{13}
 }
 func (m *ListGroupParticipantsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListGroupParticipantsResponse.Unmarshal(m, b)
@@ -570,7 +670,7 @@ func (m *VerifyOTPRequest) Reset()         { *m = VerifyOTPRequest{} }
 func (m *VerifyOTPRequest) String() string { return proto.CompactTextString(m) }
 func (*VerifyOTPRequest) ProtoMessage()    {}
 func (*VerifyOTPRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{10}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{14}
 }
 func (m *VerifyOTPRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_VerifyOTPRequest.Unmarshal(m, b)
@@ -622,7 +722,7 @@ func (m *VerifyOTPResponse) Reset()         { *m = VerifyOTPResponse{} }
 func (m *VerifyOTPResponse) String() string { return proto.CompactTextString(m) }
 func (*VerifyOTPResponse) ProtoMessage()    {}
 func (*VerifyOTPResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{11}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{15}
 }
 func (m *VerifyOTPResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_VerifyOTPResponse.Unmarshal(m, b)
@@ -661,7 +761,7 @@ func (m *CreateProfileRequest) Reset()         { *m = CreateProfileRequest{} }
 func (m *CreateProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateProfileRequest) ProtoMessage()    {}
 func (*CreateProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{12}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{16}
 }
 func (m *CreateProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateProfileRequest.Unmarshal(m, b)
@@ -707,7 +807,7 @@ func (m *CreateProfileResponse) Reset()         { *m = CreateProfileResponse{} }
 func (m *CreateProfileResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateProfileResponse) ProtoMessage()    {}
 func (*CreateProfileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{13}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{17}
 }
 func (m *CreateProfileResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateProfileResponse.Unmarshal(m, b)
@@ -755,7 +855,7 @@ func (m *EditProfileRequest) Reset()         { *m = EditProfileRequest{} }
 func (m *EditProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*EditProfileRequest) ProtoMessage()    {}
 func (*EditProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{14}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{18}
 }
 func (m *EditProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EditProfileRequest.Unmarshal(m, b)
@@ -815,7 +915,7 @@ func (m *EditProfileResponse) Reset()         { *m = EditProfileResponse{} }
 func (m *EditProfileResponse) String() string { return proto.CompactTextString(m) }
 func (*EditProfileResponse) ProtoMessage()    {}
 func (*EditProfileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{15}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{19}
 }
 func (m *EditProfileResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EditProfileResponse.Unmarshal(m, b)
@@ -860,7 +960,7 @@ func (m *GetProfileRequest) Reset()         { *m = GetProfileRequest{} }
 func (m *GetProfileRequest) String() string { return proto.CompactTextString(m) }
 func (*GetProfileRequest) ProtoMessage()    {}
 func (*GetProfileRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{16}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{20}
 }
 func (m *GetProfileRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetProfileRequest.Unmarshal(m, b)
@@ -902,7 +1002,7 @@ func (m *GetProfileResponse) Reset()         { *m = GetProfileResponse{} }
 func (m *GetProfileResponse) String() string { return proto.CompactTextString(m) }
 func (*GetProfileResponse) ProtoMessage()    {}
 func (*GetProfileResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{17}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{21}
 }
 func (m *GetProfileResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetProfileResponse.Unmarshal(m, b)
@@ -967,7 +1067,7 @@ func (m *ListConversationsRequest) Reset()         { *m = ListConversationsReque
 func (m *ListConversationsRequest) String() string { return proto.CompactTextString(m) }
 func (*ListConversationsRequest) ProtoMessage()    {}
 func (*ListConversationsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{18}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{22}
 }
 func (m *ListConversationsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListConversationsRequest.Unmarshal(m, b)
@@ -998,7 +1098,7 @@ func (m *ListConversationsResponse) Reset()         { *m = ListConversationsResp
 func (m *ListConversationsResponse) String() string { return proto.CompactTextString(m) }
 func (*ListConversationsResponse) ProtoMessage()    {}
 func (*ListConversationsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{19}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{23}
 }
 func (m *ListConversationsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListConversationsResponse.Unmarshal(m, b)
@@ -1033,6 +1133,8 @@ type Conversations struct {
 	Notification         int64    `protobuf:"varint,5,opt,name=notification,proto3" json:"notification,omitempty"`
 	ChatType             int32    `protobuf:"varint,6,opt,name=chatType,proto3" json:"chatType,omitempty"`
 	IsGroupAdmin         bool     `protobuf:"varint,7,opt,name=isGroupAdmin,proto3" json:"isGroupAdmin,omitempty"`
+	Avatar               string   `protobuf:"bytes,8,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	AvatarThumbnail      []byte   `protobuf:"bytes,9,opt,name=avatarThumbnail,proto3" json:"avatarThumbnail,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1042,7 +1144,7 @@ func (m *Conversations) Reset()         { *m = Conversations{} }
 func (m *Conversations) String() string { return proto.CompactTextString(m) }
 func (*Conversations) ProtoMessage()    {}
 func (*Conversations) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{20}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{24}
 }
 func (m *Conversations) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Conversations.Unmarshal(m, b)
@@ -1111,6 +1213,20 @@ func (m *Conversations) GetIsGroupAdmin() bool {
 	return false
 }
 
+func (m *Conversations) GetAvatar() string {
+	if m != nil {
+		return m.Avatar
+	}
+	return ""
+}
+
+func (m *Conversations) GetAvatarThumbnail() []byte {
+	if m != nil {
+		return m.AvatarThumbnail
+	}
+	return nil
+}
+
 type UpdateConversationRequest struct {
 	ChatID               string   `protobuf:"bytes,1,opt,name=chatID,proto3" json:"chatID,omitempty"`
 	Excerpt              string   `protobuf:"bytes,2,opt,name=excerpt,proto3" json:"excerpt,omitempty"`
@@ -1124,7 +1240,7 @@ func (m *UpdateConversationRequest) Reset()         { *m = UpdateConversationReq
 func (m *UpdateConversationRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateConversationRequest) ProtoMessage()    {}
 func (*UpdateConversationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{21}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{25}
 }
 func (m *UpdateConversationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateConversationRequest.Unmarshal(m, b)
@@ -1177,7 +1293,7 @@ func (m *UpdateConversationResponse) Reset()         { *m = UpdateConversationRe
 func (m *UpdateConversationResponse) String() string { return proto.CompactTextString(m) }
 func (*UpdateConversationResponse) ProtoMessage()    {}
 func (*UpdateConversationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{22}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{26}
 }
 func (m *UpdateConversationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateConversationResponse.Unmarshal(m, b)
@@ -1223,7 +1339,7 @@ func (m *DeleteContactRequest) Reset()         { *m = DeleteContactRequest{} }
 func (m *DeleteContactRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteContactRequest) ProtoMessage()    {}
 func (*DeleteContactRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{23}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{27}
 }
 func (m *DeleteContactRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteContactRequest.Unmarshal(m, b)
@@ -1262,7 +1378,7 @@ func (m *DeleteContactResponse) Reset()         { *m = DeleteContactResponse{} }
 func (m *DeleteContactResponse) String() string { return proto.CompactTextString(m) }
 func (*DeleteContactResponse) ProtoMessage()    {}
 func (*DeleteContactResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{24}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{28}
 }
 func (m *DeleteContactResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteContactResponse.Unmarshal(m, b)
@@ -1306,7 +1422,7 @@ func (m *GetContactsRequest) Reset()         { *m = GetContactsRequest{} }
 func (m *GetContactsRequest) String() string { return proto.CompactTextString(m) }
 func (*GetContactsRequest) ProtoMessage()    {}
 func (*GetContactsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{25}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{29}
 }
 func (m *GetContactsRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetContactsRequest.Unmarshal(m, b)
@@ -1337,7 +1453,7 @@ func (m *GetContactsResponse) Reset()         { *m = GetContactsResponse{} }
 func (m *GetContactsResponse) String() string { return proto.CompactTextString(m) }
 func (*GetContactsResponse) ProtoMessage()    {}
 func (*GetContactsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{26}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{30}
 }
 func (m *GetContactsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetContactsResponse.Unmarshal(m, b)
@@ -1368,6 +1484,10 @@ type Contacts struct {
 	PeerID               string   `protobuf:"bytes,1,opt,name=peerID,proto3" json:"peerID,omitempty"`
 	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Notification         int64    `protobuf:"varint,3,opt,name=notification,proto3" json:"notification,omitempty"`
+	AvatarThumbnail      []byte   `protobuf:"bytes,4,opt,name=avatar_thumbnail,json=avatarThumbnail,proto3" json:"avatar_thumbnail,omitempty"`
+	PhoneNumber          string   `protobuf:"bytes,5,opt,name=phoneNumber,proto3" json:"phoneNumber,omitempty"`
+	UserName             string   `protobuf:"bytes,6,opt,name=userName,proto3" json:"userName,omitempty"`
+	CustomData           string   `protobuf:"bytes,7,opt,name=customData,proto3" json:"customData,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1377,7 +1497,7 @@ func (m *Contacts) Reset()         { *m = Contacts{} }
 func (m *Contacts) String() string { return proto.CompactTextString(m) }
 func (*Contacts) ProtoMessage()    {}
 func (*Contacts) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{27}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{31}
 }
 func (m *Contacts) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Contacts.Unmarshal(m, b)
@@ -1418,6 +1538,34 @@ func (m *Contacts) GetNotification() int64 {
 	return 0
 }
 
+func (m *Contacts) GetAvatarThumbnail() []byte {
+	if m != nil {
+		return m.AvatarThumbnail
+	}
+	return nil
+}
+
+func (m *Contacts) GetPhoneNumber() string {
+	if m != nil {
+		return m.PhoneNumber
+	}
+	return ""
+}
+
+func (m *Contacts) GetUserName() string {
+	if m != nil {
+		return m.UserName
+	}
+	return ""
+}
+
+func (m *Contacts) GetCustomData() string {
+	if m != nil {
+		return m.CustomData
+	}
+	return ""
+}
+
 type PutContactRequest struct {
 	PhoneNumber          string    `protobuf:"bytes,1,opt,name=phoneNumber,proto3" json:"phoneNumber,omitempty"`
 	ContactData          *Contacts `protobuf:"bytes,2,opt,name=contactData,proto3" json:"contactData,omitempty"`
@@ -1430,7 +1578,7 @@ func (m *PutContactRequest) Reset()         { *m = PutContactRequest{} }
 func (m *PutContactRequest) String() string { return proto.CompactTextString(m) }
 func (*PutContactRequest) ProtoMessage()    {}
 func (*PutContactRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{28}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{32}
 }
 func (m *PutContactRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PutContactRequest.Unmarshal(m, b)
@@ -1465,18 +1613,18 @@ func (m *PutContactRequest) GetContactData() *Contacts {
 }
 
 type PutContactResponse struct {
-	Status               PutContactStatus `protobuf:"varint,1,opt,name=status,proto3,enum=PutContactStatus" json:"status,omitempty"`
-	Message              string           `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
-	XXX_unrecognized     []byte           `json:"-"`
-	XXX_sizecache        int32            `json:"-"`
+	Success              bool     `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message              string   `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *PutContactResponse) Reset()         { *m = PutContactResponse{} }
 func (m *PutContactResponse) String() string { return proto.CompactTextString(m) }
 func (*PutContactResponse) ProtoMessage()    {}
 func (*PutContactResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{29}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{33}
 }
 func (m *PutContactResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PutContactResponse.Unmarshal(m, b)
@@ -1496,11 +1644,11 @@ func (m *PutContactResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_PutContactResponse proto.InternalMessageInfo
 
-func (m *PutContactResponse) GetStatus() PutContactStatus {
+func (m *PutContactResponse) GetSuccess() bool {
 	if m != nil {
-		return m.Status
+		return m.Success
 	}
-	return PutContactStatus_Success
+	return false
 }
 
 func (m *PutContactResponse) GetMessage() string {
@@ -1522,7 +1670,7 @@ func (m *GetMessageReceptionStateRequest) Reset()         { *m = GetMessageRecep
 func (m *GetMessageReceptionStateRequest) String() string { return proto.CompactTextString(m) }
 func (*GetMessageReceptionStateRequest) ProtoMessage()    {}
 func (*GetMessageReceptionStateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{30}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{34}
 }
 func (m *GetMessageReceptionStateRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetMessageReceptionStateRequest.Unmarshal(m, b)
@@ -1567,7 +1715,7 @@ func (m *GetMessageReceptionStateResponse) Reset()         { *m = GetMessageRece
 func (m *GetMessageReceptionStateResponse) String() string { return proto.CompactTextString(m) }
 func (*GetMessageReceptionStateResponse) ProtoMessage()    {}
 func (*GetMessageReceptionStateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{31}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{35}
 }
 func (m *GetMessageReceptionStateResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetMessageReceptionStateResponse.Unmarshal(m, b)
@@ -1606,7 +1754,7 @@ func (m *GetMessageStateRequest) Reset()         { *m = GetMessageStateRequest{}
 func (m *GetMessageStateRequest) String() string { return proto.CompactTextString(m) }
 func (*GetMessageStateRequest) ProtoMessage()    {}
 func (*GetMessageStateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{32}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{36}
 }
 func (m *GetMessageStateRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetMessageStateRequest.Unmarshal(m, b)
@@ -1651,7 +1799,7 @@ func (m *GetMessageStateResponse) Reset()         { *m = GetMessageStateResponse
 func (m *GetMessageStateResponse) String() string { return proto.CompactTextString(m) }
 func (*GetMessageStateResponse) ProtoMessage()    {}
 func (*GetMessageStateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{33}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{37}
 }
 func (m *GetMessageStateResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetMessageStateResponse.Unmarshal(m, b)
@@ -1690,7 +1838,7 @@ func (m *PutMessageStateRequest) Reset()         { *m = PutMessageStateRequest{}
 func (m *PutMessageStateRequest) String() string { return proto.CompactTextString(m) }
 func (*PutMessageStateRequest) ProtoMessage()    {}
 func (*PutMessageStateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{34}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{38}
 }
 func (m *PutMessageStateRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PutMessageStateRequest.Unmarshal(m, b)
@@ -1736,7 +1884,7 @@ func (m *PutMessageStateResponse) Reset()         { *m = PutMessageStateResponse
 func (m *PutMessageStateResponse) String() string { return proto.CompactTextString(m) }
 func (*PutMessageStateResponse) ProtoMessage()    {}
 func (*PutMessageStateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{35}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{39}
 }
 func (m *PutMessageStateResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PutMessageStateResponse.Unmarshal(m, b)
@@ -1783,7 +1931,7 @@ func (m *PutMessageReceptionStateRequest) Reset()         { *m = PutMessageRecep
 func (m *PutMessageReceptionStateRequest) String() string { return proto.CompactTextString(m) }
 func (*PutMessageReceptionStateRequest) ProtoMessage()    {}
 func (*PutMessageReceptionStateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{36}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{40}
 }
 func (m *PutMessageReceptionStateRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PutMessageReceptionStateRequest.Unmarshal(m, b)
@@ -1828,7 +1976,7 @@ func (m *PutMessageReceptionStateResponse) Reset()         { *m = PutMessageRece
 func (m *PutMessageReceptionStateResponse) String() string { return proto.CompactTextString(m) }
 func (*PutMessageReceptionStateResponse) ProtoMessage()    {}
 func (*PutMessageReceptionStateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{37}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{41}
 }
 func (m *PutMessageReceptionStateResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PutMessageReceptionStateResponse.Unmarshal(m, b)
@@ -1868,7 +2016,7 @@ func (m *CreateConversationRequest) Reset()         { *m = CreateConversationReq
 func (m *CreateConversationRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateConversationRequest) ProtoMessage()    {}
 func (*CreateConversationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{38}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{42}
 }
 func (m *CreateConversationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateConversationRequest.Unmarshal(m, b)
@@ -1921,7 +2069,7 @@ func (m *CreateConversationResponse) Reset()         { *m = CreateConversationRe
 func (m *CreateConversationResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateConversationResponse) ProtoMessage()    {}
 func (*CreateConversationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{39}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{43}
 }
 func (m *CreateConversationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateConversationResponse.Unmarshal(m, b)
@@ -1966,7 +2114,7 @@ func (m *DeleteConversationRequest) Reset()         { *m = DeleteConversationReq
 func (m *DeleteConversationRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteConversationRequest) ProtoMessage()    {}
 func (*DeleteConversationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{40}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{44}
 }
 func (m *DeleteConversationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteConversationRequest.Unmarshal(m, b)
@@ -2005,7 +2153,7 @@ func (m *DeleteConversationResponse) Reset()         { *m = DeleteConversationRe
 func (m *DeleteConversationResponse) String() string { return proto.CompactTextString(m) }
 func (*DeleteConversationResponse) ProtoMessage()    {}
 func (*DeleteConversationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{41}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{45}
 }
 func (m *DeleteConversationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteConversationResponse.Unmarshal(m, b)
@@ -2051,7 +2199,7 @@ func (m *AddToGroupRequest) Reset()         { *m = AddToGroupRequest{} }
 func (m *AddToGroupRequest) String() string { return proto.CompactTextString(m) }
 func (*AddToGroupRequest) ProtoMessage()    {}
 func (*AddToGroupRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{42}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{46}
 }
 func (m *AddToGroupRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_AddToGroupRequest.Unmarshal(m, b)
@@ -2096,7 +2244,7 @@ func (m *AddToGroupResponse) Reset()         { *m = AddToGroupResponse{} }
 func (m *AddToGroupResponse) String() string { return proto.CompactTextString(m) }
 func (*AddToGroupResponse) ProtoMessage()    {}
 func (*AddToGroupResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{43}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{47}
 }
 func (m *AddToGroupResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_AddToGroupResponse.Unmarshal(m, b)
@@ -2124,7 +2272,10 @@ func (m *AddToGroupResponse) GetGroupID() string {
 }
 
 type UploadMediaRequest struct {
-	Content              []byte   `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
+	FileName             string   `protobuf:"bytes,1,opt,name=fileName,proto3" json:"fileName,omitempty"`
+	ContentType          string   `protobuf:"bytes,2,opt,name=contentType,proto3" json:"contentType,omitempty"`
+	IsEncrypted          bool     `protobuf:"varint,3,opt,name=isEncrypted,proto3" json:"isEncrypted,omitempty"`
+	Contents             []byte   `protobuf:"bytes,4,opt,name=contents,proto3" json:"contents,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -2134,7 +2285,7 @@ func (m *UploadMediaRequest) Reset()         { *m = UploadMediaRequest{} }
 func (m *UploadMediaRequest) String() string { return proto.CompactTextString(m) }
 func (*UploadMediaRequest) ProtoMessage()    {}
 func (*UploadMediaRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{44}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{48}
 }
 func (m *UploadMediaRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UploadMediaRequest.Unmarshal(m, b)
@@ -2154,26 +2305,46 @@ func (m *UploadMediaRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UploadMediaRequest proto.InternalMessageInfo
 
-func (m *UploadMediaRequest) GetContent() []byte {
+func (m *UploadMediaRequest) GetFileName() string {
 	if m != nil {
-		return m.Content
+		return m.FileName
+	}
+	return ""
+}
+
+func (m *UploadMediaRequest) GetContentType() string {
+	if m != nil {
+		return m.ContentType
+	}
+	return ""
+}
+
+func (m *UploadMediaRequest) GetIsEncrypted() bool {
+	if m != nil {
+		return m.IsEncrypted
+	}
+	return false
+}
+
+func (m *UploadMediaRequest) GetContents() []byte {
+	if m != nil {
+		return m.Contents
 	}
 	return nil
 }
 
 type UploadMediaResponse struct {
-	MediaID              string            `protobuf:"bytes,1,opt,name=mediaID,proto3" json:"mediaID,omitempty"`
-	Status               UploadMediaStatus `protobuf:"varint,2,opt,name=status,proto3,enum=UploadMediaStatus" json:"status,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_unrecognized     []byte            `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+	MediaID              string   `protobuf:"bytes,1,opt,name=mediaID,proto3" json:"mediaID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *UploadMediaResponse) Reset()         { *m = UploadMediaResponse{} }
 func (m *UploadMediaResponse) String() string { return proto.CompactTextString(m) }
 func (*UploadMediaResponse) ProtoMessage()    {}
 func (*UploadMediaResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{45}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{49}
 }
 func (m *UploadMediaResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UploadMediaResponse.Unmarshal(m, b)
@@ -2200,11 +2371,80 @@ func (m *UploadMediaResponse) GetMediaID() string {
 	return ""
 }
 
-func (m *UploadMediaResponse) GetStatus() UploadMediaStatus {
+type UploadProfilePictureRequest struct {
+	Contents             []byte   `protobuf:"bytes,1,opt,name=contents,proto3" json:"contents,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UploadProfilePictureRequest) Reset()         { *m = UploadProfilePictureRequest{} }
+func (m *UploadProfilePictureRequest) String() string { return proto.CompactTextString(m) }
+func (*UploadProfilePictureRequest) ProtoMessage()    {}
+func (*UploadProfilePictureRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{50}
+}
+func (m *UploadProfilePictureRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UploadProfilePictureRequest.Unmarshal(m, b)
+}
+func (m *UploadProfilePictureRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UploadProfilePictureRequest.Marshal(b, m, deterministic)
+}
+func (dst *UploadProfilePictureRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UploadProfilePictureRequest.Merge(dst, src)
+}
+func (m *UploadProfilePictureRequest) XXX_Size() int {
+	return xxx_messageInfo_UploadProfilePictureRequest.Size(m)
+}
+func (m *UploadProfilePictureRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UploadProfilePictureRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UploadProfilePictureRequest proto.InternalMessageInfo
+
+func (m *UploadProfilePictureRequest) GetContents() []byte {
 	if m != nil {
-		return m.Status
+		return m.Contents
 	}
-	return UploadMediaStatus_Uploading
+	return nil
+}
+
+type UploadProfilePictureResponse struct {
+	MediaID              string   `protobuf:"bytes,1,opt,name=mediaID,proto3" json:"mediaID,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UploadProfilePictureResponse) Reset()         { *m = UploadProfilePictureResponse{} }
+func (m *UploadProfilePictureResponse) String() string { return proto.CompactTextString(m) }
+func (*UploadProfilePictureResponse) ProtoMessage()    {}
+func (*UploadProfilePictureResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{51}
+}
+func (m *UploadProfilePictureResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UploadProfilePictureResponse.Unmarshal(m, b)
+}
+func (m *UploadProfilePictureResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UploadProfilePictureResponse.Marshal(b, m, deterministic)
+}
+func (dst *UploadProfilePictureResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UploadProfilePictureResponse.Merge(dst, src)
+}
+func (m *UploadProfilePictureResponse) XXX_Size() int {
+	return xxx_messageInfo_UploadProfilePictureResponse.Size(m)
+}
+func (m *UploadProfilePictureResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UploadProfilePictureResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UploadProfilePictureResponse proto.InternalMessageInfo
+
+func (m *UploadProfilePictureResponse) GetMediaID() string {
+	if m != nil {
+		return m.MediaID
+	}
+	return ""
 }
 
 type GetMediaRequest struct {
@@ -2218,7 +2458,7 @@ func (m *GetMediaRequest) Reset()         { *m = GetMediaRequest{} }
 func (m *GetMediaRequest) String() string { return proto.CompactTextString(m) }
 func (*GetMediaRequest) ProtoMessage()    {}
 func (*GetMediaRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{46}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{52}
 }
 func (m *GetMediaRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetMediaRequest.Unmarshal(m, b)
@@ -2256,7 +2496,7 @@ func (m *GetMediaResponse) Reset()         { *m = GetMediaResponse{} }
 func (m *GetMediaResponse) String() string { return proto.CompactTextString(m) }
 func (*GetMediaResponse) ProtoMessage()    {}
 func (*GetMediaResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{47}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{53}
 }
 func (m *GetMediaResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetMediaResponse.Unmarshal(m, b)
@@ -2293,7 +2533,7 @@ func (m *GetMessagesRequest) Reset()         { *m = GetMessagesRequest{} }
 func (m *GetMessagesRequest) String() string { return proto.CompactTextString(m) }
 func (*GetMessagesRequest) ProtoMessage()    {}
 func (*GetMessagesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{48}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{54}
 }
 func (m *GetMessagesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetMessagesRequest.Unmarshal(m, b)
@@ -2324,7 +2564,7 @@ func (m *GetMessageNotificationStream) Reset()         { *m = GetMessageNotifica
 func (m *GetMessageNotificationStream) String() string { return proto.CompactTextString(m) }
 func (*GetMessageNotificationStream) ProtoMessage()    {}
 func (*GetMessageNotificationStream) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{49}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{55}
 }
 func (m *GetMessageNotificationStream) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetMessageNotificationStream.Unmarshal(m, b)
@@ -2368,7 +2608,7 @@ func (m *GetMessagesResponseItem) Reset()         { *m = GetMessagesResponseItem
 func (m *GetMessagesResponseItem) String() string { return proto.CompactTextString(m) }
 func (*GetMessagesResponseItem) ProtoMessage()    {}
 func (*GetMessagesResponseItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{50}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{56}
 }
 func (m *GetMessagesResponseItem) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetMessagesResponseItem.Unmarshal(m, b)
@@ -2449,7 +2689,7 @@ func (m *PutMessageResponse) Reset()         { *m = PutMessageResponse{} }
 func (m *PutMessageResponse) String() string { return proto.CompactTextString(m) }
 func (*PutMessageResponse) ProtoMessage()    {}
 func (*PutMessageResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{51}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{57}
 }
 func (m *PutMessageResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PutMessageResponse.Unmarshal(m, b)
@@ -2499,7 +2739,7 @@ func (m *PutMessageRequest) Reset()         { *m = PutMessageRequest{} }
 func (m *PutMessageRequest) String() string { return proto.CompactTextString(m) }
 func (*PutMessageRequest) ProtoMessage()    {}
 func (*PutMessageRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{52}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{58}
 }
 func (m *PutMessageRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PutMessageRequest.Unmarshal(m, b)
@@ -2572,7 +2812,7 @@ func (m *PublicGetKeysRequest) Reset()         { *m = PublicGetKeysRequest{} }
 func (m *PublicGetKeysRequest) String() string { return proto.CompactTextString(m) }
 func (*PublicGetKeysRequest) ProtoMessage()    {}
 func (*PublicGetKeysRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{53}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{59}
 }
 func (m *PublicGetKeysRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PublicGetKeysRequest.Unmarshal(m, b)
@@ -2610,7 +2850,7 @@ func (m *PublicGetKeysResponse) Reset()         { *m = PublicGetKeysResponse{} }
 func (m *PublicGetKeysResponse) String() string { return proto.CompactTextString(m) }
 func (*PublicGetKeysResponse) ProtoMessage()    {}
 func (*PublicGetKeysResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{54}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{60}
 }
 func (m *PublicGetKeysResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PublicGetKeysResponse.Unmarshal(m, b)
@@ -2649,7 +2889,7 @@ func (m *PutKeysRequest) Reset()         { *m = PutKeysRequest{} }
 func (m *PutKeysRequest) String() string { return proto.CompactTextString(m) }
 func (*PutKeysRequest) ProtoMessage()    {}
 func (*PutKeysRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{55}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{61}
 }
 func (m *PutKeysRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PutKeysRequest.Unmarshal(m, b)
@@ -2694,7 +2934,7 @@ func (m *PutKeysResponse) Reset()         { *m = PutKeysResponse{} }
 func (m *PutKeysResponse) String() string { return proto.CompactTextString(m) }
 func (*PutKeysResponse) ProtoMessage()    {}
 func (*PutKeysResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{56}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{62}
 }
 func (m *PutKeysResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PutKeysResponse.Unmarshal(m, b)
@@ -2737,7 +2977,7 @@ func (m *GroupParticipant) Reset()         { *m = GroupParticipant{} }
 func (m *GroupParticipant) String() string { return proto.CompactTextString(m) }
 func (*GroupParticipant) ProtoMessage()    {}
 func (*GroupParticipant) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{57}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{63}
 }
 func (m *GroupParticipant) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GroupParticipant.Unmarshal(m, b)
@@ -2812,7 +3052,7 @@ func (m *CreateGroupConversationRequest) Reset()         { *m = CreateGroupConve
 func (m *CreateGroupConversationRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateGroupConversationRequest) ProtoMessage()    {}
 func (*CreateGroupConversationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{58}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{64}
 }
 func (m *CreateGroupConversationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateGroupConversationRequest.Unmarshal(m, b)
@@ -2864,7 +3104,7 @@ func (m *CreateGroupConversationResponse) Reset()         { *m = CreateGroupConv
 func (m *CreateGroupConversationResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateGroupConversationResponse) ProtoMessage()    {}
 func (*CreateGroupConversationResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ngobrel_136bc95770b17cee, []int{59}
+	return fileDescriptor_ngobrel_5b7d1a421c9b9c59, []int{65}
 }
 func (m *CreateGroupConversationResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateGroupConversationResponse.Unmarshal(m, b)
@@ -2892,6 +3132,10 @@ func (m *CreateGroupConversationResponse) GetGroupID() string {
 }
 
 func init() {
+	proto.RegisterType((*GetProfilePictureRequest)(nil), "GetProfilePictureRequest")
+	proto.RegisterType((*GetProfilePictureResponse)(nil), "GetProfilePictureResponse")
+	proto.RegisterType((*EchoRequest)(nil), "EchoRequest")
+	proto.RegisterType((*EchoResponse)(nil), "EchoResponse")
 	proto.RegisterType((*RenameGroupRequest)(nil), "RenameGroupRequest")
 	proto.RegisterType((*RenameGroupResponse)(nil), "RenameGroupResponse")
 	proto.RegisterType((*ExitFromGroupRequest)(nil), "ExitFromGroupRequest")
@@ -2938,6 +3182,8 @@ func init() {
 	proto.RegisterType((*AddToGroupResponse)(nil), "AddToGroupResponse")
 	proto.RegisterType((*UploadMediaRequest)(nil), "UploadMediaRequest")
 	proto.RegisterType((*UploadMediaResponse)(nil), "UploadMediaResponse")
+	proto.RegisterType((*UploadProfilePictureRequest)(nil), "UploadProfilePictureRequest")
+	proto.RegisterType((*UploadProfilePictureResponse)(nil), "UploadProfilePictureResponse")
 	proto.RegisterType((*GetMediaRequest)(nil), "GetMediaRequest")
 	proto.RegisterType((*GetMediaResponse)(nil), "GetMediaResponse")
 	proto.RegisterType((*GetMessagesRequest)(nil), "GetMessagesRequest")
@@ -2952,11 +3198,9 @@ func init() {
 	proto.RegisterType((*GroupParticipant)(nil), "GroupParticipant")
 	proto.RegisterType((*CreateGroupConversationRequest)(nil), "CreateGroupConversationRequest")
 	proto.RegisterType((*CreateGroupConversationResponse)(nil), "CreateGroupConversationResponse")
-	proto.RegisterEnum("PutContactStatus", PutContactStatus_name, PutContactStatus_value)
 	proto.RegisterEnum("ConversationType", ConversationType_name, ConversationType_value)
 	proto.RegisterEnum("MessageState", MessageState_name, MessageState_value)
 	proto.RegisterEnum("MessageReceptionState", MessageReceptionState_name, MessageReceptionState_value)
-	proto.RegisterEnum("UploadMediaStatus", UploadMediaStatus_name, UploadMediaStatus_value)
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -2980,6 +3224,9 @@ type NgobrelClient interface {
 	// *
 	// Get notifications for incoming messages
 	GetMessageNotification(ctx context.Context, in *GetMessagesRequest, opts ...grpc.CallOption) (Ngobrel_GetMessageNotificationClient, error)
+	// *
+	// Uploads media file
+	UploadMedia(ctx context.Context, opts ...grpc.CallOption) (Ngobrel_UploadMediaClient, error)
 	// *
 	// Creates a group conversation
 	CreateGroupConversation(ctx context.Context, in *CreateGroupConversationRequest, opts ...grpc.CallOption) (*CreateGroupConversationResponse, error)
@@ -3026,8 +3273,17 @@ type NgobrelClient interface {
 	// Gets the profile of a specific user ID
 	GetProfile(ctx context.Context, in *GetProfileRequest, opts ...grpc.CallOption) (*GetProfileResponse, error)
 	// *
+	// Uploads profile picture
+	UploadProfilePicture(ctx context.Context, opts ...grpc.CallOption) (Ngobrel_UploadProfilePictureClient, error)
+	// *
+	// Gets profile picture
+	GetProfilePicture(ctx context.Context, in *GetProfilePictureRequest, opts ...grpc.CallOption) (Ngobrel_GetProfilePictureClient, error)
+	// *
 	// Verify OTP
 	VerifyOTP(ctx context.Context, in *VerifyOTPRequest, opts ...grpc.CallOption) (*VerifyOTPResponse, error)
+	// *
+	// Echo
+	Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error)
 }
 
 type ngobrelClient struct {
@@ -3105,6 +3361,40 @@ type ngobrelGetMessageNotificationClient struct {
 
 func (x *ngobrelGetMessageNotificationClient) Recv() (*GetMessageNotificationStream, error) {
 	m := new(GetMessageNotificationStream)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *ngobrelClient) UploadMedia(ctx context.Context, opts ...grpc.CallOption) (Ngobrel_UploadMediaClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Ngobrel_serviceDesc.Streams[2], "/Ngobrel/UploadMedia", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &ngobrelUploadMediaClient{stream}
+	return x, nil
+}
+
+type Ngobrel_UploadMediaClient interface {
+	Send(*UploadMediaRequest) error
+	CloseAndRecv() (*UploadMediaResponse, error)
+	grpc.ClientStream
+}
+
+type ngobrelUploadMediaClient struct {
+	grpc.ClientStream
+}
+
+func (x *ngobrelUploadMediaClient) Send(m *UploadMediaRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *ngobrelUploadMediaClient) CloseAndRecv() (*UploadMediaResponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(UploadMediaResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -3246,9 +3536,84 @@ func (c *ngobrelClient) GetProfile(ctx context.Context, in *GetProfileRequest, o
 	return out, nil
 }
 
+func (c *ngobrelClient) UploadProfilePicture(ctx context.Context, opts ...grpc.CallOption) (Ngobrel_UploadProfilePictureClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Ngobrel_serviceDesc.Streams[3], "/Ngobrel/UploadProfilePicture", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &ngobrelUploadProfilePictureClient{stream}
+	return x, nil
+}
+
+type Ngobrel_UploadProfilePictureClient interface {
+	Send(*UploadProfilePictureRequest) error
+	CloseAndRecv() (*UploadProfilePictureResponse, error)
+	grpc.ClientStream
+}
+
+type ngobrelUploadProfilePictureClient struct {
+	grpc.ClientStream
+}
+
+func (x *ngobrelUploadProfilePictureClient) Send(m *UploadProfilePictureRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *ngobrelUploadProfilePictureClient) CloseAndRecv() (*UploadProfilePictureResponse, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(UploadProfilePictureResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *ngobrelClient) GetProfilePicture(ctx context.Context, in *GetProfilePictureRequest, opts ...grpc.CallOption) (Ngobrel_GetProfilePictureClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Ngobrel_serviceDesc.Streams[4], "/Ngobrel/GetProfilePicture", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &ngobrelGetProfilePictureClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Ngobrel_GetProfilePictureClient interface {
+	Recv() (*GetProfilePictureResponse, error)
+	grpc.ClientStream
+}
+
+type ngobrelGetProfilePictureClient struct {
+	grpc.ClientStream
+}
+
+func (x *ngobrelGetProfilePictureClient) Recv() (*GetProfilePictureResponse, error) {
+	m := new(GetProfilePictureResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *ngobrelClient) VerifyOTP(ctx context.Context, in *VerifyOTPRequest, opts ...grpc.CallOption) (*VerifyOTPResponse, error) {
 	out := new(VerifyOTPResponse)
 	err := c.cc.Invoke(ctx, "/Ngobrel/VerifyOTP", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ngobrelClient) Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error) {
+	out := new(EchoResponse)
+	err := c.cc.Invoke(ctx, "/Ngobrel/Echo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -3266,6 +3631,9 @@ type NgobrelServer interface {
 	// *
 	// Get notifications for incoming messages
 	GetMessageNotification(*GetMessagesRequest, Ngobrel_GetMessageNotificationServer) error
+	// *
+	// Uploads media file
+	UploadMedia(Ngobrel_UploadMediaServer) error
 	// *
 	// Creates a group conversation
 	CreateGroupConversation(context.Context, *CreateGroupConversationRequest) (*CreateGroupConversationResponse, error)
@@ -3312,8 +3680,17 @@ type NgobrelServer interface {
 	// Gets the profile of a specific user ID
 	GetProfile(context.Context, *GetProfileRequest) (*GetProfileResponse, error)
 	// *
+	// Uploads profile picture
+	UploadProfilePicture(Ngobrel_UploadProfilePictureServer) error
+	// *
+	// Gets profile picture
+	GetProfilePicture(*GetProfilePictureRequest, Ngobrel_GetProfilePictureServer) error
+	// *
 	// Verify OTP
 	VerifyOTP(context.Context, *VerifyOTPRequest) (*VerifyOTPResponse, error)
+	// *
+	// Echo
+	Echo(context.Context, *EchoRequest) (*EchoResponse, error)
 }
 
 func RegisterNgobrelServer(s *grpc.Server, srv NgobrelServer) {
@@ -3378,6 +3755,32 @@ type ngobrelGetMessageNotificationServer struct {
 
 func (x *ngobrelGetMessageNotificationServer) Send(m *GetMessageNotificationStream) error {
 	return x.ServerStream.SendMsg(m)
+}
+
+func _Ngobrel_UploadMedia_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(NgobrelServer).UploadMedia(&ngobrelUploadMediaServer{stream})
+}
+
+type Ngobrel_UploadMediaServer interface {
+	SendAndClose(*UploadMediaResponse) error
+	Recv() (*UploadMediaRequest, error)
+	grpc.ServerStream
+}
+
+type ngobrelUploadMediaServer struct {
+	grpc.ServerStream
+}
+
+func (x *ngobrelUploadMediaServer) SendAndClose(m *UploadMediaResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *ngobrelUploadMediaServer) Recv() (*UploadMediaRequest, error) {
+	m := new(UploadMediaRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func _Ngobrel_CreateGroupConversation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -3650,6 +4053,53 @@ func _Ngobrel_GetProfile_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Ngobrel_UploadProfilePicture_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(NgobrelServer).UploadProfilePicture(&ngobrelUploadProfilePictureServer{stream})
+}
+
+type Ngobrel_UploadProfilePictureServer interface {
+	SendAndClose(*UploadProfilePictureResponse) error
+	Recv() (*UploadProfilePictureRequest, error)
+	grpc.ServerStream
+}
+
+type ngobrelUploadProfilePictureServer struct {
+	grpc.ServerStream
+}
+
+func (x *ngobrelUploadProfilePictureServer) SendAndClose(m *UploadProfilePictureResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *ngobrelUploadProfilePictureServer) Recv() (*UploadProfilePictureRequest, error) {
+	m := new(UploadProfilePictureRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _Ngobrel_GetProfilePicture_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetProfilePictureRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NgobrelServer).GetProfilePicture(m, &ngobrelGetProfilePictureServer{stream})
+}
+
+type Ngobrel_GetProfilePictureServer interface {
+	Send(*GetProfilePictureResponse) error
+	grpc.ServerStream
+}
+
+type ngobrelGetProfilePictureServer struct {
+	grpc.ServerStream
+}
+
+func (x *ngobrelGetProfilePictureServer) Send(m *GetProfilePictureResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _Ngobrel_VerifyOTP_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(VerifyOTPRequest)
 	if err := dec(in); err != nil {
@@ -3664,6 +4114,24 @@ func _Ngobrel_VerifyOTP_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(NgobrelServer).VerifyOTP(ctx, req.(*VerifyOTPRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Ngobrel_Echo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EchoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NgobrelServer).Echo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Ngobrel/Echo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NgobrelServer).Echo(ctx, req.(*EchoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3740,6 +4208,10 @@ var _Ngobrel_serviceDesc = grpc.ServiceDesc{
 			MethodName: "VerifyOTP",
 			Handler:    _Ngobrel_VerifyOTP_Handler,
 		},
+		{
+			MethodName: "Echo",
+			Handler:    _Ngobrel_Echo_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
@@ -3752,127 +4224,152 @@ var _Ngobrel_serviceDesc = grpc.ServiceDesc{
 			Handler:       _Ngobrel_GetMessageNotification_Handler,
 			ServerStreams: true,
 		},
+		{
+			StreamName:    "UploadMedia",
+			Handler:       _Ngobrel_UploadMedia_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "UploadProfilePicture",
+			Handler:       _Ngobrel_UploadProfilePicture_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "GetProfilePicture",
+			Handler:       _Ngobrel_GetProfilePicture_Handler,
+			ServerStreams: true,
+		},
 	},
 	Metadata: "ngobrel.proto",
 }
 
-func init() { proto.RegisterFile("ngobrel.proto", fileDescriptor_ngobrel_136bc95770b17cee) }
+func init() { proto.RegisterFile("ngobrel.proto", fileDescriptor_ngobrel_5b7d1a421c9b9c59) }
 
-var fileDescriptor_ngobrel_136bc95770b17cee = []byte{
-	// 1831 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x19, 0x69, 0x6f, 0xe3, 0xb8,
-	0xd5, 0xb2, 0x9d, 0xc3, 0x2f, 0xc7, 0xc8, 0xf4, 0x11, 0x47, 0x73, 0x05, 0xec, 0x81, 0x99, 0x4c,
-	0xc1, 0x6e, 0x67, 0xb6, 0xd8, 0xa2, 0x9d, 0x1e, 0xdb, 0x71, 0x36, 0x75, 0x67, 0xe3, 0x31, 0x14,
-	0xef, 0xb6, 0xdd, 0x02, 0x5b, 0x28, 0x36, 0x93, 0x11, 0xc6, 0x3a, 0x2a, 0xd1, 0xe9, 0xe6, 0x73,
-	0xbf, 0xf5, 0x4f, 0xf4, 0x73, 0x81, 0x7e, 0xef, 0xcf, 0xe9, 0x2f, 0x29, 0x50, 0x50, 0xa4, 0x25,
-	0xea, 0xb2, 0xbc, 0xc8, 0x7e, 0x31, 0xfc, 0x1e, 0xc9, 0x77, 0xf1, 0x5d, 0x7c, 0x82, 0x03, 0xf7,
-	0xc6, 0xbb, 0x0a, 0xe8, 0x82, 0xf8, 0x81, 0xc7, 0x3c, 0xfc, 0x3b, 0x40, 0x26, 0x75, 0x2d, 0x87,
-	0x9e, 0x07, 0xde, 0xd2, 0x37, 0xe9, 0x5f, 0x97, 0x34, 0x64, 0x68, 0x00, 0x3b, 0x37, 0x1c, 0x1e,
-	0x0d, 0x07, 0xda, 0x89, 0xf6, 0xac, 0x65, 0xae, 0x40, 0xbe, 0xe2, 0xd2, 0xbf, 0x8d, 0x2d, 0x87,
-	0x0e, 0xea, 0x62, 0x45, 0x82, 0xf8, 0xc7, 0xd0, 0x49, 0x51, 0x0a, 0x7d, 0xcf, 0x0d, 0x29, 0x3f,
-	0x10, 0x2e, 0x67, 0x33, 0x1a, 0x86, 0x11, 0xa9, 0x5d, 0x73, 0x05, 0xe2, 0x8f, 0xa0, 0x7b, 0xf6,
-	0x8d, 0xcd, 0x3e, 0x0b, 0x3c, 0x67, 0x33, 0xe6, 0xf8, 0x27, 0xd0, 0xcb, 0x9c, 0xa8, 0x64, 0xf2,
-	0x7b, 0xe8, 0x9b, 0xd4, 0xf1, 0x6e, 0xe9, 0xa7, 0x73, 0xc7, 0x76, 0x4d, 0x6f, 0x41, 0xab, 0x75,
-	0xec, 0xc3, 0xf6, 0x32, 0xa4, 0xc1, 0x68, 0x28, 0x55, 0x94, 0x10, 0x7e, 0x05, 0x47, 0x39, 0x5a,
-	0x9b, 0x0b, 0xb0, 0xb9, 0x9e, 0xd5, 0x02, 0x7c, 0x1b, 0x0b, 0xfc, 0x0c, 0x1e, 0x7d, 0x6e, 0x87,
-	0x2c, 0xda, 0x3e, 0xb1, 0x02, 0x66, 0xcf, 0x6c, 0xdf, 0x72, 0x59, 0x58, 0x6d, 0xee, 0x2f, 0xe1,
-	0x71, 0xc9, 0x49, 0xc9, 0xf4, 0xa7, 0xb0, 0xef, 0x2b, 0xf8, 0x81, 0x76, 0xd2, 0x78, 0xb6, 0xf7,
-	0xb2, 0x4d, 0xb2, 0x27, 0xcc, 0xd4, 0x36, 0x7c, 0x05, 0xfa, 0x97, 0x34, 0xb0, 0xaf, 0xef, 0xde,
-	0x4d, 0x27, 0x2b, 0x29, 0x4e, 0x60, 0xcf, 0x7f, 0xef, 0xb9, 0x74, 0xbc, 0x74, 0xae, 0x68, 0x20,
-	0x25, 0x51, 0x51, 0x48, 0x87, 0xc6, 0xbb, 0xe9, 0x44, 0x5a, 0x84, 0xff, 0x45, 0x06, 0xec, 0xce,
-	0xe9, 0xad, 0x3d, 0xa3, 0xa3, 0xe1, 0xa0, 0x11, 0xa1, 0x63, 0x18, 0x3f, 0x87, 0xb6, 0xc2, 0x43,
-	0xca, 0xdb, 0x85, 0x2d, 0xe6, 0x7d, 0xa0, 0xae, 0x24, 0x2f, 0x00, 0x3c, 0x85, 0xee, 0x9b, 0x80,
-	0x5a, 0x8c, 0x4e, 0x02, 0xef, 0xda, 0x4e, 0x1c, 0x44, 0x25, 0xaf, 0xa5, 0xc9, 0x67, 0xc5, 0xad,
-	0xe7, 0xc4, 0xc5, 0x6f, 0xa1, 0x97, 0xa1, 0x2a, 0x85, 0x48, 0x2e, 0x57, 0x53, 0x2f, 0x97, 0xb3,
-	0xf3, 0x98, 0x3f, 0xa4, 0x57, 0xcb, 0x1b, 0x49, 0x2f, 0x86, 0xf1, 0x3f, 0x34, 0x40, 0x67, 0x73,
-	0x9b, 0x65, 0x24, 0x44, 0xd0, 0xe4, 0x01, 0x27, 0x09, 0x45, 0xff, 0x39, 0x19, 0x4e, 0x50, 0x89,
-	0xd0, 0x18, 0x46, 0x4f, 0x00, 0x66, 0xcb, 0x90, 0x79, 0xce, 0xd0, 0x62, 0x96, 0x34, 0x99, 0x82,
-	0x41, 0xdf, 0x87, 0x03, 0xeb, 0xd6, 0x62, 0x56, 0x70, 0x41, 0xe7, 0xb6, 0x35, 0x9a, 0x0f, 0x9a,
-	0xd1, 0x96, 0x34, 0x12, 0x8f, 0xa0, 0x93, 0x92, 0xa5, 0xca, 0x03, 0xf9, 0x8a, 0x43, 0xc3, 0xd0,
-	0xba, 0x89, 0x73, 0x86, 0x04, 0xf1, 0x0b, 0x68, 0x9f, 0xd3, 0xac, 0x56, 0x25, 0x06, 0xc2, 0xff,
-	0xd6, 0x00, 0xa9, 0xbb, 0x25, 0xdf, 0x6f, 0x6b, 0x84, 0xcc, 0xd5, 0x35, 0xf2, 0x9e, 0x96, 0x36,
-	0x53, 0xb3, 0xda, 0x4c, 0x5b, 0x45, 0x66, 0x32, 0x60, 0xc0, 0xa3, 0xe7, 0x8d, 0xe7, 0xde, 0xd2,
-	0x20, 0xb4, 0x98, 0xed, 0xb9, 0xab, 0x98, 0xc3, 0xbf, 0x86, 0xe3, 0x82, 0x35, 0xa9, 0x10, 0x86,
-	0xe6, 0xc2, 0x0e, 0x99, 0x8c, 0xa6, 0x43, 0x92, 0xde, 0x15, 0xad, 0xe1, 0xff, 0x6a, 0x70, 0x90,
-	0xc2, 0x73, 0xab, 0xcd, 0xde, 0x5b, 0x2c, 0xb1, 0x9a, 0x80, 0xb8, 0x29, 0xf8, 0x3f, 0xd5, 0x14,
-	0x2b, 0x98, 0x5f, 0x0c, 0xfd, 0x66, 0x46, 0x03, 0x9f, 0x49, 0x33, 0xac, 0x40, 0xf4, 0x08, 0x5a,
-	0xcc, 0x76, 0x68, 0xc8, 0x2c, 0xc7, 0x8f, 0x2c, 0xd0, 0x30, 0x13, 0x04, 0xc2, 0xb0, 0xef, 0x7a,
-	0xcc, 0xbe, 0xb6, 0x67, 0x11, 0xf3, 0x48, 0xff, 0x86, 0x99, 0xc2, 0xad, 0xf8, 0x4e, 0xef, 0x7c,
-	0x3a, 0xd8, 0x3e, 0xd1, 0x9e, 0x6d, 0x99, 0x31, 0xcc, 0xcf, 0xdb, 0x61, 0x94, 0x24, 0xa2, 0x4c,
-	0x3a, 0xd8, 0x89, 0xfc, 0x25, 0x85, 0xc3, 0x1f, 0xe0, 0xf8, 0x0b, 0x7f, 0x6e, 0x31, 0xaa, 0xaa,
-	0xa9, 0xb8, 0x48, 0xa1, 0xb2, 0x8a, 0x42, 0xf5, 0x35, 0x0a, 0x35, 0x32, 0x0a, 0xe1, 0x09, 0x18,
-	0x45, 0xcc, 0xee, 0xe1, 0xd9, 0x04, 0xba, 0x43, 0xba, 0xa0, 0x11, 0x45, 0x66, 0xcd, 0x58, 0x95,
-	0x73, 0xbf, 0x85, 0x5e, 0x66, 0xff, 0x3d, 0x98, 0x77, 0xa3, 0x40, 0x91, 0x94, 0x62, 0xa7, 0xfb,
-	0x18, 0x3a, 0x29, 0xac, 0x64, 0xf0, 0x38, 0xe5, 0x6e, 0x2d, 0x12, 0x6f, 0x10, 0x9e, 0xf6, 0x15,
-	0xec, 0xae, 0x30, 0x5c, 0x78, 0x9f, 0xaa, 0xc2, 0x0b, 0x28, 0x0e, 0xc1, 0xba, 0x12, 0x82, 0x59,
-	0x1f, 0x69, 0xe4, 0x7d, 0x04, 0x5f, 0x41, 0x7b, 0xb2, 0x64, 0x19, 0x0b, 0x55, 0x57, 0x82, 0x17,
-	0xb0, 0x37, 0x13, 0x67, 0xa2, 0x00, 0xe5, 0x5c, 0x53, 0x82, 0xab, 0xab, 0xf8, 0x4f, 0x80, 0x54,
-	0x1e, 0x52, 0xe9, 0xe7, 0xb0, 0x1d, 0x32, 0x8b, 0x2d, 0x85, 0x51, 0x0f, 0x5f, 0xb6, 0x49, 0xb2,
-	0xe9, 0x32, 0x5a, 0x30, 0xe5, 0x86, 0x35, 0x66, 0xfe, 0x03, 0x3c, 0x3d, 0xa7, 0xec, 0x42, 0x40,
-	0x26, 0x9d, 0x51, 0x9f, 0x6b, 0xc5, 0x8f, 0x57, 0xe5, 0x32, 0xee, 0x8e, 0x92, 0x4a, 0x5c, 0xe4,
-	0x13, 0x04, 0x36, 0xe1, 0xa4, 0x9c, 0xb0, 0xd4, 0x80, 0x64, 0x34, 0xe8, 0x93, 0xe2, 0xfd, 0x72,
-	0x17, 0x1e, 0x43, 0x3f, 0xa1, 0xf9, 0x1d, 0xc8, 0xf8, 0x2b, 0x38, 0xca, 0xd1, 0x93, 0xa2, 0x7d,
-	0x0f, 0xb6, 0x38, 0x53, 0x2a, 0x25, 0x3b, 0x20, 0xa9, 0x5d, 0x62, 0x0d, 0x5f, 0x43, 0x7f, 0xb2,
-	0x2c, 0x94, 0x27, 0xc5, 0x57, 0xcb, 0xf0, 0x55, 0xf4, 0xae, 0x6f, 0xa4, 0xf7, 0x05, 0x1c, 0xe5,
-	0xf8, 0xdc, 0x23, 0xb4, 0x3c, 0x78, 0x9a, 0x90, 0x2b, 0xbe, 0xf3, 0xef, 0x56, 0xfe, 0xd7, 0x70,
-	0x52, 0xce, 0xb0, 0xb2, 0xf9, 0x0b, 0xe0, 0x58, 0x74, 0x21, 0x25, 0x59, 0xb4, 0xf0, 0xe2, 0x93,
-	0xec, 0x5a, 0x4f, 0x65, 0xd7, 0x1f, 0x40, 0x93, 0xf1, 0x74, 0xde, 0x90, 0x21, 0xa3, 0xd2, 0xe4,
-	0x79, 0xdd, 0x8c, 0x96, 0xf1, 0x18, 0x8c, 0x22, 0x9e, 0x49, 0xfb, 0x53, 0x96, 0xba, 0x4b, 0x4c,
-	0xfe, 0x0a, 0x8e, 0xe3, 0xd4, 0xb8, 0x69, 0x25, 0xe0, 0x19, 0xbd, 0xe8, 0xd0, 0x3d, 0x6e, 0x7e,
-	0x0e, 0xed, 0x4f, 0xe7, 0xf3, 0xa9, 0xb7, 0x61, 0x0f, 0x9f, 0xed, 0x8d, 0xeb, 0x9b, 0xf5, 0xc6,
-	0x04, 0x90, 0xca, 0x25, 0x91, 0xb7, 0xa4, 0x47, 0x27, 0x80, 0xbe, 0xf0, 0x17, 0x9e, 0x35, 0x8f,
-	0xda, 0x0e, 0x45, 0x2c, 0x9e, 0x03, 0xa9, 0xcb, 0xa2, 0xfd, 0xfb, 0xe6, 0x0a, 0xc4, 0x7f, 0x86,
-	0x4e, 0x6a, 0x7f, 0xc2, 0xc0, 0x89, 0xfa, 0x96, 0x98, 0x81, 0x04, 0xd1, 0x69, 0xc6, 0x5f, 0x11,
-	0x51, 0xce, 0xa7, 0x53, 0x25, 0x7e, 0x01, 0x0f, 0xa2, 0x9c, 0x90, 0x96, 0xa4, 0x98, 0x30, 0xfe,
-	0x11, 0xe8, 0xc9, 0xe6, 0x44, 0x8c, 0x12, 0xb9, 0x45, 0x49, 0x93, 0x61, 0x10, 0x97, 0xb4, 0xd7,
-	0xf0, 0x28, 0xc1, 0x8e, 0x95, 0xd2, 0x72, 0xc9, 0x02, 0x6a, 0x39, 0xe9, 0xaa, 0xaf, 0x65, 0xab,
-	0xfe, 0x3f, 0xeb, 0x6a, 0x0e, 0x8b, 0x2b, 0xe2, 0x88, 0x51, 0x87, 0x57, 0xa1, 0x80, 0xce, 0x6c,
-	0xdf, 0xa6, 0x6e, 0xe2, 0x5c, 0x2a, 0x8a, 0x37, 0x38, 0x21, 0x75, 0xe7, 0xca, 0x33, 0x2d, 0x86,
-	0xd1, 0x0f, 0xe1, 0x50, 0xfc, 0x1f, 0xa6, 0xdf, 0x27, 0x19, 0x6c, 0x3a, 0x55, 0xc8, 0x36, 0x2b,
-	0x49, 0x15, 0xa7, 0xa0, 0x4b, 0x60, 0x1a, 0x2b, 0x21, 0x5a, 0xad, 0x1c, 0x1e, 0x3d, 0x83, 0x07,
-	0x12, 0xf7, 0x46, 0x58, 0x2c, 0x8c, 0xba, 0xae, 0x96, 0x99, 0x45, 0x2b, 0x54, 0xcf, 0xdc, 0x59,
-	0x70, 0xe7, 0x33, 0x3a, 0x97, 0x0d, 0x58, 0x0e, 0x8f, 0xbf, 0x8e, 0x8a, 0x67, 0x9c, 0x7c, 0xe4,
-	0x2d, 0xe5, 0x12, 0x5c, 0xa5, 0xd4, 0xf5, 0x62, 0xa9, 0xf1, 0xff, 0xb4, 0xa8, 0x03, 0x88, 0x19,
-	0xc4, 0x1d, 0x40, 0x85, 0xed, 0x73, 0xa5, 0xa9, 0x52, 0x82, 0xc6, 0xe6, 0x76, 0x6b, 0x6e, 0x6e,
-	0xb7, 0xad, 0x62, 0xbb, 0xf1, 0xfb, 0x5f, 0xe1, 0x64, 0x3b, 0x2a, 0x2e, 0x23, 0x83, 0xe5, 0x5d,
-	0xe2, 0x64, 0x79, 0xb5, 0xb0, 0x67, 0xe7, 0x94, 0xbd, 0xa5, 0x77, 0x61, 0x55, 0x97, 0xf8, 0x02,
-	0x7a, 0x99, 0xfd, 0xc9, 0x23, 0xe8, 0x03, 0xbd, 0x0b, 0x65, 0xd4, 0x44, 0xff, 0xf1, 0x6b, 0x38,
-	0x9c, 0x2c, 0x37, 0x21, 0x1b, 0x9f, 0xae, 0x2b, 0xa7, 0x9f, 0xc3, 0x83, 0xf8, 0xf4, 0xfa, 0x97,
-	0x2b, 0xfe, 0x8f, 0x06, 0x7a, 0x36, 0xad, 0xad, 0xe3, 0x95, 0xeb, 0x15, 0xab, 0x9f, 0x64, 0x0f,
-	0xa1, 0xc5, 0xcf, 0xff, 0x25, 0x3a, 0xda, 0x5c, 0xfb, 0xac, 0xdd, 0xca, 0xbd, 0xd7, 0x06, 0xb0,
-	0x63, 0x87, 0xe2, 0xa5, 0xb1, 0x2d, 0xb2, 0xbd, 0x04, 0xf1, 0xdf, 0x35, 0x78, 0x22, 0x6a, 0x55,
-	0x24, 0x7f, 0x51, 0x81, 0x29, 0x7a, 0x5e, 0xf6, 0x61, 0x5b, 0xbc, 0xf5, 0xa4, 0xc5, 0x24, 0x94,
-	0xcb, 0xf9, 0x8d, 0xcd, 0x72, 0xfe, 0x2f, 0xe0, 0x69, 0xa9, 0x10, 0x55, 0x05, 0xe0, 0x74, 0x0c,
-	0x7a, 0xb6, 0x75, 0x45, 0x7b, 0xb0, 0x73, 0x29, 0xea, 0x99, 0x5e, 0x43, 0x3a, 0xec, 0x9f, 0x53,
-	0x97, 0x06, 0xd6, 0xe2, 0x2c, 0x08, 0xbc, 0x40, 0xd7, 0xd0, 0x43, 0x38, 0x92, 0xfb, 0x47, 0xe1,
-	0xd8, 0x63, 0x23, 0x77, 0xfa, 0x9e, 0x5e, 0xde, 0x85, 0x8c, 0x3a, 0x7a, 0xfd, 0xf4, 0x97, 0xa0,
-	0x67, 0xeb, 0x3a, 0x3a, 0x04, 0x98, 0x50, 0x1a, 0x4c, 0x3d, 0xfe, 0xab, 0xd7, 0x50, 0x0b, 0xb6,
-	0x22, 0x51, 0x75, 0x8d, 0x2f, 0x5d, 0x58, 0xae, 0x75, 0x43, 0x1d, 0xea, 0x32, 0xbd, 0x7e, 0xfa,
-	0x1c, 0xf6, 0xd5, 0x5e, 0x0b, 0x01, 0x6c, 0x8f, 0xbd, 0xc0, 0xb1, 0x16, 0x7a, 0x0d, 0x1d, 0x40,
-	0xcb, 0xa4, 0x2c, 0xb0, 0x66, 0x8c, 0xce, 0x75, 0xed, 0x74, 0x08, 0xbd, 0xc2, 0xb6, 0x86, 0x93,
-	0x1f, 0x06, 0xd6, 0x35, 0xd3, 0x6b, 0x68, 0x17, 0x9a, 0x97, 0x9c, 0xb0, 0x86, 0xf6, 0x61, 0x97,
-	0x6f, 0xb3, 0x6f, 0xe9, 0x5c, 0xaf, 0x73, 0xbc, 0x49, 0xad, 0xb9, 0xde, 0x38, 0xfd, 0x04, 0xda,
-	0xb9, 0x82, 0xc4, 0x39, 0x09, 0xa4, 0xed, 0xde, 0x08, 0x2a, 0x43, 0xcf, 0xa5, 0xba, 0xc6, 0x49,
-	0x0b, 0x2b, 0xd4, 0x5f, 0xfe, 0x0b, 0x60, 0x67, 0x2c, 0x66, 0xa1, 0xe8, 0x13, 0x80, 0x24, 0x0d,
-	0x21, 0x44, 0x72, 0x39, 0xc9, 0xe8, 0x90, 0x7c, 0x22, 0xc4, 0x35, 0xf4, 0x1b, 0xd8, 0x53, 0x2a,
-	0x08, 0xea, 0x90, 0x7c, 0x91, 0x32, 0x06, 0xa4, 0xa4, 0xc8, 0xe0, 0xda, 0x47, 0x1a, 0x9a, 0xa8,
-	0x7d, 0xb9, 0x5a, 0xc2, 0x8a, 0x89, 0x3d, 0x26, 0xeb, 0x0a, 0x5e, 0x44, 0xf1, 0x6b, 0x38, 0x2a,
-	0x71, 0x27, 0xf4, 0x94, 0xac, 0xf7, 0x76, 0xe3, 0x84, 0x54, 0x78, 0x22, 0xae, 0xa1, 0x77, 0x80,
-	0xf2, 0xfd, 0x1d, 0x32, 0x48, 0x69, 0xa3, 0x69, 0x3c, 0x24, 0xe5, 0x0d, 0x21, 0xae, 0xa1, 0xcf,
-	0xa1, 0x9d, 0x9b, 0x86, 0xa0, 0x63, 0x52, 0x36, 0x3d, 0x31, 0x0c, 0x52, 0x3a, 0x3c, 0x11, 0xe2,
-	0xe5, 0xdf, 0xf2, 0xc8, 0x20, 0xa5, 0xd3, 0x04, 0xe3, 0x21, 0x29, 0x7f, 0xfc, 0xe3, 0x1a, 0xfa,
-	0x23, 0xf4, 0x0a, 0xc7, 0xa0, 0xe8, 0x31, 0x59, 0x37, 0x58, 0x35, 0x9e, 0x90, 0xb5, 0xd3, 0x53,
-	0x5c, 0x43, 0x9f, 0xc1, 0x83, 0xcc, 0x40, 0x19, 0x1d, 0x91, 0xe2, 0x71, 0xb5, 0x31, 0x20, 0x25,
-	0xb3, 0x67, 0x95, 0x4e, 0x3c, 0x17, 0x8e, 0xe9, 0x64, 0xa7, 0xce, 0x31, 0x9d, 0xdc, 0x08, 0x19,
-	0xd7, 0x78, 0x18, 0x24, 0xcd, 0x27, 0x42, 0x24, 0xd7, 0xef, 0x1a, 0x1d, 0x92, 0xef, 0x4e, 0xa3,
-	0x30, 0x38, 0x48, 0x0d, 0xe6, 0x51, 0x8f, 0x14, 0x8d, 0xf6, 0x8d, 0x3e, 0x29, 0x9c, 0xdf, 0xe3,
-	0x1a, 0xfa, 0x39, 0xec, 0x29, 0x5f, 0x0f, 0x50, 0x87, 0xe4, 0xbf, 0x4a, 0x18, 0x5d, 0x52, 0xf0,
-	0x81, 0x41, 0x9c, 0x55, 0x06, 0x1b, 0x22, 0x6e, 0x32, 0xc3, 0x0f, 0xa3, 0x4b, 0x0a, 0x66, 0x1f,
-	0x42, 0xe5, 0x24, 0x7d, 0x8a, 0xc8, 0x4f, 0xcf, 0x23, 0x44, 0xe4, 0x67, 0xe6, 0x07, 0x42, 0xe5,
-	0xd4, 0x7c, 0x17, 0xf5, 0x48, 0xd1, 0x14, 0xd9, 0xe8, 0x93, 0xc2, 0x31, 0xb0, 0x10, 0x5b, 0x99,
-	0xa3, 0xa2, 0x0e, 0xc9, 0x4f, 0x78, 0x8d, 0x2e, 0x29, 0x18, 0xb5, 0x0a, 0xb1, 0x93, 0x51, 0x28,
-	0x42, 0x24, 0x37, 0x45, 0x35, 0x3a, 0x24, 0x3f, 0x2b, 0xc5, 0x35, 0xf4, 0x31, 0xb4, 0xe2, 0xb9,
-	0x38, 0x6a, 0x93, 0xec, 0x1c, 0xde, 0x40, 0x24, 0x37, 0x36, 0xc7, 0xb5, 0xdf, 0xb6, 0xbe, 0xda,
-	0x91, 0x9f, 0x8d, 0xae, 0xb6, 0xa3, 0xef, 0x46, 0xaf, 0xfe, 0x1f, 0x00, 0x00, 0xff, 0xff, 0x5e,
-	0xe8, 0xd3, 0x09, 0x48, 0x1a, 0x00, 0x00,
+var fileDescriptor_ngobrel_5b7d1a421c9b9c59 = []byte{
+	// 1985 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x59, 0x4b, 0x73, 0xdb, 0xc8,
+	0x11, 0x26, 0x48, 0xea, 0xc1, 0xd6, 0xc3, 0xd4, 0x90, 0x92, 0x28, 0x58, 0xb2, 0x55, 0x93, 0x4d,
+	0x22, 0xdb, 0xa9, 0x59, 0xc7, 0xde, 0xd4, 0x6e, 0x12, 0xe7, 0xb1, 0x31, 0xb5, 0x8e, 0xe2, 0x95,
+	0xcc, 0x82, 0xe5, 0x4d, 0x2a, 0x87, 0xdd, 0x82, 0xc0, 0x91, 0x84, 0x32, 0x09, 0x20, 0xc0, 0x50,
+	0x59, 0x9d, 0x73, 0xcb, 0x29, 0xff, 0x20, 0x95, 0x7b, 0x6e, 0x39, 0xe4, 0x07, 0xe5, 0x77, 0xa4,
+	0x6a, 0x6b, 0x1e, 0x00, 0x06, 0x2f, 0x82, 0x5b, 0xf2, 0x85, 0xc5, 0x6e, 0xcc, 0x74, 0xf7, 0xf4,
+	0x4c, 0x77, 0x7f, 0xd3, 0x03, 0x1b, 0xde, 0x95, 0x7f, 0x11, 0xd2, 0x09, 0x09, 0x42, 0x9f, 0xf9,
+	0xf8, 0x19, 0x0c, 0x5e, 0x51, 0x36, 0x0a, 0xfd, 0x4b, 0x77, 0x42, 0x47, 0xae, 0xc3, 0x66, 0x21,
+	0xb5, 0xe8, 0x5f, 0x66, 0x34, 0x62, 0x68, 0x07, 0x96, 0x67, 0x11, 0x0d, 0x4f, 0x86, 0x03, 0xe3,
+	0xd0, 0x38, 0xea, 0x58, 0x8a, 0xc2, 0x9f, 0xc2, 0x5e, 0xc9, 0x9c, 0x28, 0xf0, 0xbd, 0x88, 0x22,
+	0x13, 0x56, 0x1d, 0xdf, 0x63, 0xd4, 0x63, 0x91, 0x98, 0xb6, 0x6e, 0x25, 0x34, 0xfe, 0x31, 0xac,
+	0x1d, 0x3b, 0xd7, 0x7e, 0x2c, 0x7f, 0x00, 0x2b, 0x53, 0x1a, 0x45, 0xf6, 0x15, 0x55, 0x0a, 0x62,
+	0x12, 0x7f, 0x04, 0xeb, 0x72, 0xa0, 0x12, 0xda, 0x87, 0xa5, 0x90, 0x06, 0x93, 0x5b, 0x35, 0x4e,
+	0x12, 0xf8, 0xf7, 0x80, 0x2c, 0xea, 0xd9, 0x53, 0xfa, 0x2a, 0xf4, 0x67, 0x81, 0x26, 0xf5, 0x8a,
+	0xd3, 0x89, 0xd9, 0x31, 0xc9, 0xbf, 0x78, 0xf4, 0xaf, 0x67, 0xf6, 0x94, 0x0e, 0x9a, 0xf2, 0x8b,
+	0x22, 0xf1, 0xc7, 0xd0, 0xcb, 0x48, 0x52, 0x6a, 0x07, 0xb0, 0x12, 0xcd, 0x1c, 0x87, 0x46, 0x72,
+	0x29, 0xab, 0x56, 0x4c, 0xe2, 0xa7, 0xd0, 0x3f, 0xfe, 0xd6, 0x65, 0x5f, 0x84, 0xfe, 0x74, 0x31,
+	0xe5, 0xf8, 0xa7, 0xb0, 0x9d, 0x9b, 0x51, 0xab, 0xe4, 0x0f, 0xb0, 0x63, 0xd1, 0xa9, 0x7f, 0x43,
+	0x3f, 0x1f, 0x4f, 0x5d, 0xcf, 0xf2, 0x27, 0xb4, 0x7e, 0x8d, 0xe9, 0x9e, 0x35, 0x33, 0x7b, 0xf6,
+	0x1c, 0x76, 0x0b, 0xb2, 0x16, 0x37, 0x60, 0xf1, 0x75, 0xd6, 0x1b, 0xf0, 0x7d, 0x3c, 0xf0, 0x19,
+	0xec, 0x7f, 0xe9, 0x46, 0x4c, 0x0c, 0x1f, 0xd9, 0x21, 0x73, 0x1d, 0x37, 0xb0, 0x3d, 0x16, 0xd5,
+	0xbb, 0xfb, 0x2b, 0x38, 0xa8, 0x98, 0xa9, 0x94, 0xfe, 0x0c, 0xd6, 0x03, 0x8d, 0x3f, 0x30, 0x0e,
+	0x5b, 0x47, 0x6b, 0xcf, 0xb6, 0x48, 0x7e, 0x86, 0x95, 0x19, 0x86, 0x2f, 0xa0, 0xfb, 0x15, 0x0d,
+	0xdd, 0xcb, 0xdb, 0x37, 0xe7, 0xa3, 0xd8, 0x8a, 0x43, 0x58, 0x0b, 0xae, 0x7d, 0x8f, 0x9e, 0xcd,
+	0xa6, 0x17, 0x34, 0x54, 0x96, 0xe8, 0x2c, 0xd4, 0x85, 0xd6, 0x9b, 0xf3, 0x91, 0xf2, 0x08, 0xff,
+	0xcb, 0xc3, 0x64, 0x4c, 0x6f, 0x5c, 0x87, 0x9e, 0x0c, 0x07, 0x2d, 0xc1, 0x4e, 0x68, 0xfc, 0x08,
+	0xb6, 0x34, 0x1d, 0x69, 0x08, 0x30, 0xff, 0x3d, 0xf5, 0xe2, 0x10, 0x10, 0x04, 0x3e, 0x87, 0xfe,
+	0xcb, 0x90, 0xda, 0x8c, 0xaa, 0x68, 0x8c, 0x4d, 0xd2, 0xc5, 0x1b, 0x59, 0xf1, 0x79, 0x73, 0x9b,
+	0x05, 0x73, 0xf1, 0x6b, 0xd8, 0xce, 0x49, 0x55, 0x46, 0x54, 0x64, 0x04, 0xae, 0xce, 0x67, 0xc1,
+	0x90, 0x5e, 0xcc, 0xae, 0x94, 0xbc, 0x84, 0xc6, 0x7f, 0x37, 0x00, 0x1d, 0x8f, 0x5d, 0x96, 0xb3,
+	0x10, 0x41, 0x9b, 0x07, 0x9c, 0x12, 0x24, 0xfe, 0x73, 0x31, 0x5c, 0xa0, 0x16, 0xa1, 0x09, 0x8d,
+	0x1e, 0x00, 0x38, 0xb3, 0x88, 0xf9, 0xd3, 0xa1, 0xcd, 0x6c, 0xe5, 0x32, 0x8d, 0x83, 0x3e, 0x82,
+	0x0d, 0xfb, 0xc6, 0x66, 0x76, 0x78, 0x4a, 0xc7, 0xae, 0x7d, 0x32, 0x1e, 0xb4, 0xc5, 0x90, 0x2c,
+	0x13, 0x9f, 0x40, 0x2f, 0x63, 0x4b, 0xdd, 0x09, 0xd4, 0x73, 0x54, 0x33, 0x9b, 0xa3, 0x9e, 0xc0,
+	0x56, 0x9a, 0x05, 0xeb, 0x52, 0xe6, 0xbf, 0x0d, 0x40, 0xfa, 0x68, 0xa5, 0xf7, 0xfb, 0x3a, 0x21,
+	0xb7, 0x75, 0xad, 0xe2, 0x49, 0xcb, 0xba, 0xa9, 0x5d, 0xef, 0xa6, 0xa5, 0x32, 0x37, 0x99, 0x30,
+	0xe0, 0xd1, 0xf3, 0xd2, 0xf7, 0x6e, 0x68, 0x18, 0xd9, 0xcc, 0xf5, 0xbd, 0x38, 0xe6, 0xf0, 0x6f,
+	0x60, 0xaf, 0xe4, 0x9b, 0x5a, 0x10, 0x86, 0xf6, 0xc4, 0x8d, 0x98, 0x8a, 0xa6, 0x4d, 0x92, 0x1d,
+	0x25, 0xbe, 0xe1, 0x7f, 0x35, 0x61, 0x23, 0xc3, 0xe7, 0x5e, 0x73, 0xae, 0x6d, 0x96, 0x7a, 0x4d,
+	0x52, 0xa2, 0x96, 0x5c, 0xdb, 0x4c, 0x77, 0x45, 0x4c, 0xf3, 0x8d, 0xa1, 0xdf, 0x3a, 0x34, 0x0c,
+	0x98, 0x72, 0x43, 0x4c, 0xa2, 0x7d, 0xe8, 0x30, 0x77, 0x4a, 0x23, 0x66, 0x4f, 0x03, 0xe1, 0x81,
+	0x96, 0x95, 0x32, 0x10, 0x86, 0x75, 0xcf, 0x67, 0xee, 0xa5, 0xeb, 0x08, 0xe5, 0x62, 0xfd, 0x2d,
+	0x2b, 0xc3, 0x8b, 0xf5, 0x9e, 0xdf, 0x06, 0x74, 0xb0, 0x7c, 0x68, 0x1c, 0x2d, 0x59, 0x09, 0xcd,
+	0xe7, 0xbb, 0x91, 0x48, 0x12, 0x22, 0x93, 0x0e, 0x56, 0xc4, 0x79, 0xc9, 0xf0, 0xf8, 0x7a, 0xa4,
+	0x3f, 0x07, 0xab, 0x72, 0x3d, 0x92, 0x42, 0x47, 0x70, 0x4f, 0xfe, 0x3b, 0xbf, 0x9e, 0x4d, 0x2f,
+	0x3c, 0xdb, 0x9d, 0x0c, 0x3a, 0xa2, 0x44, 0xe6, 0xd9, 0xf8, 0x3d, 0xec, 0xbd, 0x0b, 0xc6, 0x36,
+	0xa3, 0xba, 0xa3, 0xb4, 0x43, 0x56, 0xea, 0x2e, 0xcd, 0x25, 0xcd, 0x39, 0x2e, 0x69, 0xe5, 0x5c,
+	0x82, 0x47, 0x60, 0x96, 0x29, 0xbb, 0x43, 0x6c, 0x10, 0xe8, 0x0f, 0xe9, 0x84, 0x0a, 0x89, 0xcc,
+	0x76, 0x58, 0x5d, 0x78, 0xbc, 0x86, 0xed, 0xdc, 0xf8, 0x3b, 0x28, 0xef, 0x8b, 0x50, 0x53, 0x92,
+	0x92, 0x63, 0xfb, 0x09, 0xf4, 0x32, 0x5c, 0xa5, 0xe0, 0x20, 0x73, 0x60, 0x3b, 0x24, 0x19, 0x20,
+	0xcf, 0xea, 0xff, 0x0c, 0x58, 0x8d, 0x59, 0xdc, 0xfa, 0x80, 0xea, 0xd6, 0x4b, 0x2a, 0x89, 0xe2,
+	0xa6, 0x16, 0xc5, 0xf9, 0x63, 0xd6, 0x2a, 0x39, 0x66, 0x8f, 0xa0, 0x2b, 0xf7, 0xfd, 0x1b, 0x96,
+	0x9c, 0x87, 0x76, 0xe9, 0x79, 0xc8, 0x07, 0xfe, 0x52, 0x31, 0xf0, 0xf5, 0xb4, 0xb1, 0x3c, 0x37,
+	0x77, 0xae, 0xe4, 0x93, 0x02, 0xbe, 0x80, 0xad, 0xd1, 0x8c, 0xe5, 0xf6, 0xaa, 0xbe, 0xaa, 0x3d,
+	0x81, 0x35, 0x47, 0xce, 0x11, 0x72, 0xf9, 0xf2, 0x33, 0x2e, 0xd4, 0xbf, 0x72, 0xb0, 0xa6, 0xeb,
+	0xb8, 0xc3, 0xfe, 0xfe, 0x11, 0x1e, 0xbe, 0xa2, 0xec, 0x54, 0x52, 0x16, 0x75, 0x68, 0xc0, 0xbd,
+	0xf9, 0x96, 0xd9, 0xac, 0x2e, 0x0d, 0xf3, 0x38, 0x50, 0x52, 0x12, 0x7c, 0x92, 0x32, 0xb0, 0x05,
+	0x87, 0xd5, 0x82, 0x95, 0xc1, 0x04, 0x96, 0x23, 0x66, 0xb3, 0x99, 0xb4, 0x77, 0xf3, 0xd9, 0x0e,
+	0x29, 0x1f, 0xaf, 0x46, 0xe1, 0x33, 0xd8, 0x49, 0x65, 0x7e, 0x00, 0x1b, 0x7f, 0x0d, 0xbb, 0x05,
+	0x79, 0xca, 0xb4, 0x1f, 0xc0, 0x12, 0x57, 0x4a, 0x95, 0x65, 0x1b, 0x24, 0x33, 0x4a, 0x7e, 0xc3,
+	0x97, 0xb0, 0x33, 0x9a, 0x95, 0xda, 0x93, 0xd1, 0x6b, 0xe4, 0xf4, 0x6a, 0xeb, 0x6e, 0x2e, 0xb4,
+	0xee, 0x53, 0xd8, 0x2d, 0xe8, 0xb9, 0xc3, 0x9e, 0xfb, 0xf0, 0x30, 0x15, 0x57, 0xbe, 0xe7, 0x1f,
+	0xd6, 0xfe, 0x17, 0x70, 0x58, 0xad, 0xb0, 0x16, 0xb7, 0x86, 0xb0, 0x27, 0x01, 0x54, 0x45, 0xfa,
+	0x2e, 0xdd, 0xf8, 0x34, 0xad, 0x37, 0x33, 0x69, 0xfd, 0x87, 0xd0, 0x66, 0xbc, 0x12, 0xb5, 0x84,
+	0xe1, 0x5b, 0x99, 0x9a, 0xca, 0x4b, 0x92, 0x25, 0x3e, 0xe3, 0x33, 0x30, 0xcb, 0x74, 0xa6, 0xc8,
+	0xad, 0xaa, 0x66, 0x54, 0xb8, 0xfc, 0x39, 0xec, 0x25, 0x39, 0x79, 0xd1, 0x12, 0xc4, 0x4b, 0x49,
+	0xd9, 0xa4, 0x3b, 0xec, 0xfc, 0x18, 0xb6, 0x3e, 0x1f, 0x8f, 0xcf, 0xfd, 0x05, 0xaf, 0x1f, 0x79,
+	0x58, 0xdf, 0x5c, 0x0c, 0xd6, 0x13, 0x40, 0xba, 0x96, 0xd4, 0xde, 0x8a, 0xeb, 0xc5, 0x3f, 0x0c,
+	0x40, 0xef, 0x82, 0x89, 0x6f, 0x8f, 0x05, 0x64, 0xd2, 0x60, 0x37, 0xc7, 0x77, 0x67, 0x29, 0xa6,
+	0x4b, 0x68, 0x9e, 0x4f, 0xd5, 0x45, 0x58, 0xe0, 0x0a, 0x05, 0xbb, 0x35, 0x16, 0x1f, 0xe1, 0x46,
+	0xc7, 0x9e, 0x13, 0xde, 0x06, 0x8c, 0x8e, 0xc5, 0x7e, 0xaf, 0x5a, 0x3a, 0x2b, 0x73, 0xb9, 0x6e,
+	0xe7, 0x2e, 0xd7, 0x1f, 0x43, 0x2f, 0x63, 0x51, 0xba, 0x86, 0xa9, 0x40, 0x75, 0xc3, 0xf4, 0x92,
+	0x2d, 0x48, 0xfc, 0x73, 0xb8, 0x2f, 0x27, 0x94, 0xdf, 0xfe, 0xe7, 0x5d, 0xe4, 0x3f, 0x83, 0xfd,
+	0xf2, 0xa9, 0xb5, 0x4a, 0x9f, 0xc0, 0x3d, 0x91, 0xbf, 0x34, 0xa7, 0x55, 0x0f, 0xfe, 0x09, 0x74,
+	0xd3, 0xc1, 0xa9, 0x68, 0x65, 0x86, 0xb2, 0x2a, 0x26, 0x55, 0xdd, 0x57, 0x21, 0x9b, 0xd4, 0xfd,
+	0x17, 0xb0, 0x9f, 0x72, 0xcf, 0xb4, 0xf2, 0xfb, 0x96, 0x85, 0xd4, 0x9e, 0x66, 0xa1, 0x91, 0x91,
+	0x87, 0x46, 0xff, 0x6c, 0xea, 0xf9, 0x36, 0x81, 0x0d, 0x27, 0x8c, 0x4e, 0xf9, 0x76, 0x85, 0xd4,
+	0x71, 0x03, 0x97, 0x7a, 0x69, 0x20, 0xe8, 0x2c, 0xee, 0xc2, 0x88, 0x7a, 0x63, 0xed, 0x36, 0x9c,
+	0xd0, 0xe8, 0x47, 0xb0, 0x29, 0xff, 0x0f, 0xb3, 0xd7, 0xc0, 0x1c, 0x37, 0x9b, 0xd6, 0x14, 0x9a,
+	0x4d, 0xd3, 0xda, 0x63, 0xe8, 0x2a, 0xe2, 0x3c, 0x59, 0x84, 0x44, 0xb4, 0x05, 0x3e, 0x47, 0x9f,
+	0x8a, 0xf7, 0x32, 0xde, 0x57, 0x09, 0x14, 0xf2, 0x6c, 0x4d, 0x6a, 0x7a, 0x1a, 0x25, 0xce, 0x2d,
+	0xf0, 0xf1, 0xd7, 0xa2, 0xae, 0x27, 0x89, 0x52, 0xed, 0x52, 0x21, 0x19, 0xd7, 0x5a, 0xdd, 0x2c,
+	0xb7, 0x1a, 0xff, 0xdf, 0x10, 0xe0, 0x24, 0x51, 0x90, 0x80, 0x93, 0x1a, 0xdf, 0x17, 0xca, 0x68,
+	0xad, 0x05, 0xad, 0xc5, 0xfd, 0xd6, 0x5e, 0xdc, 0x6f, 0x4b, 0xe5, 0x7e, 0xe3, 0xfb, 0x1f, 0xf3,
+	0x14, 0x66, 0x97, 0x9b, 0x91, 0xe3, 0x72, 0x28, 0x3d, 0x9a, 0x5d, 0x4c, 0x5c, 0xe7, 0x15, 0x65,
+	0xaf, 0xe9, 0x6d, 0x54, 0x07, 0xa5, 0x9f, 0xc0, 0x76, 0x6e, 0x7c, 0x7a, 0xd7, 0x7c, 0x4f, 0x6f,
+	0xe3, 0x58, 0x16, 0xff, 0xf1, 0x0b, 0xd8, 0x1c, 0xcd, 0x16, 0x11, 0x9b, 0xcc, 0x6e, 0x6a, 0xb3,
+	0x1f, 0xc1, 0xbd, 0x64, 0xf6, 0xfc, 0x06, 0x01, 0xfe, 0xaf, 0x01, 0xdd, 0x7c, 0x0a, 0x9e, 0xa7,
+	0xab, 0x80, 0xa7, 0xeb, 0x6f, 0xbe, 0xf7, 0xa1, 0xc3, 0xe7, 0x7f, 0x23, 0xa6, 0xb6, 0xe7, 0x22,
+	0xe0, 0xa5, 0xc2, 0xb5, 0x78, 0x00, 0x2b, 0x6e, 0x24, 0x2f, 0x74, 0xcb, 0xb2, 0x32, 0x29, 0x12,
+	0xff, 0xcd, 0x80, 0x07, 0xb2, 0xae, 0x0a, 0xfb, 0xcb, 0x8a, 0x61, 0xd9, 0x2d, 0x3e, 0xbd, 0x02,
+	0x4a, 0x8f, 0xc5, 0x57, 0xc0, 0x7c, 0x7d, 0x6a, 0x2d, 0x56, 0x9f, 0x7e, 0x09, 0x0f, 0x2b, 0x8d,
+	0xa8, 0x2b, 0x56, 0x8f, 0x7f, 0x05, 0xdd, 0x3c, 0x66, 0x40, 0x9b, 0x00, 0x23, 0x4a, 0xc3, 0x73,
+	0x9f, 0xff, 0x76, 0x1b, 0xa8, 0x03, 0x4b, 0x42, 0x74, 0xd7, 0xe0, 0x9f, 0x4e, 0x6d, 0xcf, 0xbe,
+	0xa2, 0x53, 0xea, 0xb1, 0x6e, 0xf3, 0xf1, 0x23, 0x58, 0xd7, 0x71, 0x1c, 0x02, 0x58, 0x3e, 0xf3,
+	0xc3, 0xa9, 0x3d, 0xe9, 0x36, 0xd0, 0x06, 0x74, 0x2c, 0xca, 0x42, 0xdb, 0x61, 0x74, 0xdc, 0x35,
+	0x1e, 0x0f, 0x61, 0xbb, 0x14, 0x32, 0x71, 0xf1, 0xc3, 0xd0, 0xbe, 0x64, 0xdd, 0x06, 0x5a, 0x85,
+	0xf6, 0x5b, 0x2e, 0xd8, 0x40, 0xeb, 0xb0, 0xca, 0x87, 0xb9, 0x37, 0x74, 0xdc, 0x6d, 0x72, 0xbe,
+	0x45, 0xed, 0x71, 0xb7, 0xf5, 0xec, 0x3f, 0xeb, 0xb0, 0x72, 0x26, 0xbb, 0xd4, 0xe8, 0x53, 0x80,
+	0x34, 0xfa, 0x11, 0x22, 0x85, 0x54, 0x60, 0xf6, 0x48, 0x31, 0xff, 0xe0, 0x06, 0xfa, 0x2d, 0xac,
+	0x69, 0x89, 0x1b, 0xf5, 0x48, 0xb1, 0x36, 0x98, 0x03, 0x52, 0x91, 0xdb, 0x71, 0xe3, 0xa9, 0x81,
+	0x46, 0x3a, 0x74, 0xd7, 0x2b, 0x47, 0xb9, 0xb0, 0x03, 0x32, 0xaf, 0xce, 0x08, 0x89, 0x2f, 0x60,
+	0x4d, 0x2b, 0xd1, 0xa8, 0x47, 0x8a, 0x10, 0xc2, 0xec, 0x93, 0x92, 0x2a, 0x8e, 0x1b, 0x47, 0x06,
+	0xfa, 0x1a, 0x76, 0x2b, 0xce, 0x00, 0x7a, 0x48, 0xe6, 0x1f, 0x51, 0xf3, 0x90, 0xd4, 0x1c, 0x1f,
+	0xdc, 0x40, 0x6f, 0x00, 0x15, 0x01, 0x24, 0x32, 0x49, 0x25, 0x92, 0x35, 0xef, 0x93, 0x6a, 0xc4,
+	0x89, 0x1b, 0xe8, 0x4b, 0xd8, 0x2a, 0x74, 0x8a, 0xd0, 0x1e, 0xa9, 0xea, 0x2c, 0x99, 0x26, 0xa9,
+	0x6c, 0x2c, 0x49, 0xf3, 0x8a, 0x5d, 0x0a, 0x64, 0x92, 0xca, 0x3e, 0x89, 0x79, 0x9f, 0x54, 0xb7,
+	0x35, 0x70, 0x03, 0xfd, 0x09, 0xb6, 0x4b, 0x5b, 0xc4, 0xe8, 0x80, 0xcc, 0x6b, 0x3a, 0x9b, 0x0f,
+	0xc8, 0xdc, 0xce, 0x32, 0x6e, 0xa0, 0x2f, 0xe0, 0x5e, 0xae, 0xd9, 0x8e, 0x76, 0x49, 0x79, 0x2b,
+	0xdf, 0x1c, 0x90, 0x8a, 0xbe, 0xbc, 0x2e, 0x27, 0xe9, 0x99, 0x27, 0x72, 0xf2, 0x1d, 0xf9, 0x44,
+	0x4e, 0xa1, 0xbd, 0x8e, 0x1b, 0x3c, 0x88, 0x52, 0x74, 0x8b, 0x10, 0x29, 0x00, 0x6a, 0xb3, 0x47,
+	0x8a, 0xf0, 0x57, 0x04, 0xd1, 0x46, 0xe6, 0xd1, 0x02, 0x6d, 0x93, 0xb2, 0x67, 0x0f, 0x73, 0x87,
+	0x94, 0xbe, 0x6d, 0xe0, 0x06, 0xfa, 0x05, 0xac, 0x69, 0x2f, 0x2b, 0xa8, 0x47, 0x8a, 0x2f, 0x36,
+	0x66, 0x9f, 0x94, 0x3c, 0xbe, 0xc8, 0xb9, 0x5a, 0xcb, 0x46, 0x46, 0x5d, 0xae, 0xad, 0x63, 0xf6,
+	0x49, 0x49, 0x57, 0x47, 0x2e, 0x39, 0x6d, 0x37, 0xc8, 0xbc, 0x91, 0xed, 0x6f, 0xc8, 0xbc, 0x91,
+	0xeb, 0x47, 0xc8, 0x25, 0x67, 0x7a, 0xdf, 0x68, 0x9b, 0x94, 0x75, 0xd8, 0xcd, 0x1d, 0x52, 0xda,
+	0x22, 0x97, 0x66, 0x6b, 0x3d, 0x66, 0xd4, 0x23, 0xc5, 0xee, 0xb7, 0xd9, 0x27, 0x25, 0x6d, 0x68,
+	0x69, 0x76, 0xda, 0x26, 0x46, 0x88, 0x14, 0x3a, 0xcc, 0x66, 0x8f, 0x14, 0xfb, 0xc8, 0xb8, 0x81,
+	0xde, 0x41, 0xbf, 0x0c, 0x91, 0xa3, 0x7d, 0x32, 0x07, 0xe3, 0x9b, 0x07, 0x64, 0x1e, 0x8c, 0x3f,
+	0x32, 0x78, 0x08, 0x17, 0x9e, 0xfa, 0xd0, 0x1e, 0xa9, 0x7a, 0x32, 0x34, 0x4d, 0x52, 0xf9, 0x32,
+	0xf8, 0xd4, 0x40, 0x9f, 0x40, 0x27, 0x79, 0xd8, 0x40, 0x5b, 0x24, 0xff, 0x90, 0x62, 0x22, 0x52,
+	0x78, 0xf7, 0xc0, 0x0d, 0x7e, 0xff, 0x3d, 0x76, 0xae, 0x7d, 0xb4, 0x4e, 0xb4, 0xc7, 0x43, 0x73,
+	0x83, 0xe8, 0x2f, 0x84, 0xb8, 0xf1, 0xbb, 0xce, 0x9f, 0x57, 0xd4, 0xd3, 0xe6, 0xc5, 0xb2, 0x78,
+	0xdb, 0x7c, 0xfe, 0x5d, 0x00, 0x00, 0x00, 0xff, 0xff, 0x7b, 0x58, 0xd4, 0x38, 0xec, 0x1c, 0x00,
+	0x00,
 }

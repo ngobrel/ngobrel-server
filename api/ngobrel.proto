@@ -39,7 +39,7 @@ service Ngobrel {
     /**
     Uploads media file
     */
-//    rpc UploadMedia(stream UploadMediaRequest) returns (UploadMediaResponse) {}
+    rpc UploadMedia(stream UploadMediaRequest) returns (UploadMediaResponse) {}
     
     /**
     Gets media file
@@ -152,9 +152,40 @@ service Ngobrel {
     rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {};
 
     /**
+    Uploads profile picture
+    */
+    rpc UploadProfilePicture(stream UploadProfilePictureRequest) returns (UploadProfilePictureResponse);
+
+    /**
+    Gets profile picture
+    */
+    rpc GetProfilePicture(GetProfilePictureRequest) returns (stream GetProfilePictureResponse);
+
+    /**
     Verify OTP
     */
     rpc VerifyOTP(VerifyOTPRequest) returns (VerifyOTPResponse) {};
+
+    /**
+    Echo
+    */
+    rpc Echo(EchoRequest) returns (EchoResponse) {};
+}
+
+message GetProfilePictureRequest {
+    string userID = 1;
+}
+
+message GetProfilePictureResponse {
+    bytes contents = 1;
+}
+
+message EchoRequest {
+    string message = 1;
+}
+
+message EchoResponse {
+    string reply = 1;
 }
 
 message RenameGroupRequest {
@@ -260,6 +291,8 @@ message Conversations {
     int64 notification = 5;
     int32 chatType = 6;
     bool isGroupAdmin = 7;
+    string avatar = 8;
+    bytes avatarThumbnail = 9;
 }
 
 message UpdateConversationRequest {
@@ -294,6 +327,10 @@ message Contacts {
     string peerID = 1;
     string name = 2;
     int64 notification = 3;
+    bytes avatar_thumbnail = 4;
+    string phoneNumber = 5;
+    string userName = 6;
+    string customData = 7;
 }
 
 message PutContactRequest {
@@ -301,14 +338,8 @@ message PutContactRequest {
     Contacts contactData = 2;
 }
 
-enum PutContactStatus {
-    Success = 0;
-    GeneralError = 1;
-    ContactIsNotInTheSystem = 2;
-}
-
 message PutContactResponse {
-    PutContactStatus status = 1;
+    bool success = 1;
     string message = 2;
 }
 
@@ -398,18 +429,22 @@ message  AddToGroupResponse {
 }
 
 message UploadMediaRequest {
-    bytes   content = 1;
-}
-
-enum UploadMediaStatus {
-    Uploading   = 0;
-    Done        = 1;
-    Error       = 2;
+    string fileName = 1;
+    string contentType = 2;
+    bool isEncrypted = 3;
+    bytes contents = 4;
 }
 
 message UploadMediaResponse {
+    string mediaID = 1;    
+}
+
+message UploadProfilePictureRequest {
+    bytes contents = 1;
+}
+
+message UploadProfilePictureResponse {
     string mediaID = 1;
-    UploadMediaStatus status = 2;
 }
 
 message GetMediaRequest {

@@ -20,6 +20,22 @@ type TwilioSms struct {
 	tokenID string
 }
 
+type DummySms struct {
+}
+
+func NewDummySms() *DummySms {
+	t := &DummySms{}
+	return t
+}
+
+func (t *DummySms) SetAccount(userID string, tokenID string) error {
+	return nil
+}
+
+func (t *DummySms) SendMessage(from string, to string, message string) error {
+	return nil
+}
+
 func NewTwilioSms() *TwilioSms {
 	t := &TwilioSms{}
 

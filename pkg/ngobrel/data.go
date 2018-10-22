@@ -292,7 +292,15 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 	fmt.Println(userID.String())
 
 	rows, err := db.Query(`
-	SELECT b.is_admin, b.chat_type, b.excerpt, a.chat_id, a.title as chat_name, a.avatar_thumbnail as avatar_thumbnail, b.updated_at FROM group_list a, chat_list b WHERE a.chat_id = b.chat_id and b.user_id=$1
+	SELECT b.is_admin, 
+		b.chat_type,
+		b.excerpt,
+		a.chat_id,
+		a.title as chat_name,
+		a.avatar_thumbnail as avatar_thumbnail,
+		b.updated_at,
+		'','',''
+		FROM group_list a, chat_list b WHERE a.chat_id = b.chat_id and b.user_id=$1
 	UNION ALL
 	SELECT 
 		b.is_admin, 
@@ -301,7 +309,10 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 		a.chat_id, 
 		a.name as chat_name, 
 		c.avatar_thumbnail as avatar_thumbnail, 
-		b.updated_at 
+		b.updated_at,
+		c.phone_number,
+		c.user_name,
+		c.custom_data
 		FROM contacts a, chat_list b, profile c WHERE a.chat_id = b.chat_id and a.user_id = b.user_id and c.user_id=b.chat_id and b.user_id=$1
 	ORDER BY updated_at DESC
 	`, userID.String())
@@ -318,13 +329,19 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 		var excerpt string
 		var isAdmin int32
 		var avatarThumbnail []byte
+		var phoneNumber sql.NullString
+		var userName sql.NullString
+		var customData sql.NullString
 
 		//var notification int64
 		var updatedAt time.Time
 
 		if err := rows.Scan(&isAdmin, &chatType, &excerpt, &chatID,
 			&chatName, &avatarThumbnail,
-			&updatedAt); err != nil {
+			&updatedAt,
+			&phoneNumber,
+			&userName,
+			&customData); err != nil {
 			return nil, err
 		}
 
@@ -337,6 +354,9 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 			ChatType:        chatType,
 			IsGroupAdmin:    isAdmin == 1,
 			AvatarThumbnail: avatarThumbnail,
+			PhoneNumber:     phoneNumber.String,
+			UserName:        userName.String,
+			CustomData:      customData.String,
 		}
 		list = append(list, item)
 	}

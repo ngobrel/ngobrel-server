@@ -293,6 +293,9 @@ message Conversations {
     bool isGroupAdmin = 7;
     string avatar = 8;
     bytes avatarThumbnail = 9;
+    string phoneNumber = 10;
+    string userName = 11;
+    string customData = 12;
 }
 
 message UpdateConversationRequest {

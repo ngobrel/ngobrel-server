@@ -514,7 +514,7 @@ message GroupParticipant {
 }
 message CreateGroupConversationRequest {
     string name  = 1;
-    bytes avatar = 2 ;
+    string avatar = 2 ;
     repeated GroupParticipant participants = 3;
 }
 

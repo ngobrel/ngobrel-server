@@ -208,7 +208,17 @@ func (srv *Server) CreateGroupConversation(ctx context.Context, in *CreateGroupC
 		return nil, err
 	}
 
-	return in.CreateGroupConversation(userID)
+	ret, err := in.CreateGroupConversation(userID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	err = srv.PrepareMediaForGroup(userID, ret.GroupID, in.Avatar)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return ret, nil
 }
 
 func (srv *Server) VerifyOTP(ctx context.Context, in *VerifyOTPRequest) (*VerifyOTPResponse, error) {
@@ -369,12 +379,11 @@ func (srv *Server) UploadProfilePicture(stream Ngobrel_UploadProfilePictureServe
 
 	src, err := imaging.Open(tmpFileName)
 	if err != nil {
-		log.Println("failed to open image: %v", err)
+		log.Println("failed to open image", err)
 		return err
 	}
 	src = imaging.Resize(src, 140, 140, imaging.Lanczos)
 	var b bytes.Buffer
-	//writer := bufio.NewWriter(&b)
 	imaging.Encode(&b, src, imaging.PNG)
 
 	os.Remove(tmpFileName)
@@ -477,6 +486,65 @@ func (srv *Server) UploadMedia(stream Ngobrel_UploadMediaServer) error {
 		log.Println(err)
 	}
 	return err
+}
+
+// Prepares the uploaded media for group conversation
+// When an image is uploaded for the first time it is uploaded to currently loggged in user's bucket
+// Here it is moved to the group's bucket and resized
+func (srv *Server) PrepareMediaForGroup(userID uuid.UUID, groupID, mediaID string) error {
+	tmpFileName := srv.tmpDir + "/group." + userID.String() + "-" + mediaID
+
+	src := minio.NewSourceInfo(userID.String(), mediaID, nil)
+	dst, err := minio.NewDestinationInfo(groupID, mediaID, nil, nil)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	exists, err := srv.minioClient.BucketExists(groupID)
+	if err != nil {
+		log.Println(err)
+	}
+
+	if exists == false {
+		err = srv.minioClient.MakeBucket(groupID, "us-east-1")
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+	}
+
+	err = srv.minioClient.CopyObject(dst, src)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	err = srv.minioClient.FGetObject(userID.String(), mediaID, tmpFileName, minio.GetObjectOptions{})
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	err = srv.minioClient.RemoveObject(userID.String(), mediaID)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	imgSrc, err := imaging.Open(tmpFileName)
+	if err != nil {
+		log.Println("failed to open image", err)
+		return err
+	}
+
+	imgSrc = imaging.Resize(imgSrc, 140, 140, imaging.Lanczos)
+	var b bytes.Buffer
+	imaging.Encode(&b, imgSrc, imaging.PNG)
+
+	defer os.Remove(tmpFileName)
+
+	return updateGroupAvatar(userID, groupID, mediaID, b.Bytes())
 }
 
 func (srv *Server) GetProfilePicture(in *GetProfilePictureRequest, stream Ngobrel_GetProfilePictureServer) error {

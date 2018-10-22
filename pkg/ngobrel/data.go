@@ -990,6 +990,22 @@ func uploadProfilePicture(userID uuid.UUID, mediaID string, thumbnail []byte, fi
 	return nil
 }
 
+func updateGroupAvatar(userID uuid.UUID, groupID, mediaID string, thumbnail []byte) error {
+	_, err := db.Exec(`UPDATE media set uploader=$1 WHERE uploader=$2 and file_id=$3`, groupID, userID.String(), mediaID)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	_, err = db.Exec(`UPDATE group_list set avatar=$1, updated_at=now(), avatar_thumbnail=$2 WHERE chat_id=$3`, mediaID, thumbnail, groupID)
+
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
+}
+
 func (req *GetProfilePictureRequest) getProfilePictureStream(srv *Server, userID uuid.UUID, stream Ngobrel_GetProfilePictureServer) error {
 
 	log.Println("Get profile picture")

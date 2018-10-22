@@ -511,6 +511,8 @@ message GroupParticipant {
     string user_name = 4;
     string customData = 5;
     bool isAdmin = 6;
+    string avatar = 7;
+    bytes avatarThumbnail = 8;
 }
 message CreateGroupConversationRequest {
     string name  = 1;

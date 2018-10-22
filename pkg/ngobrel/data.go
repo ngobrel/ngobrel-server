@@ -747,7 +747,7 @@ func (req *ListGroupParticipantsRequest) ListGroupParticipants(userID uuid.UUID)
 	}
 
 	membersRow, err := db.Query(`
-	SELECT p.user_id, g.is_admin, p.name, p.user_name, p.custom_data, p.phone_number
+	SELECT p.user_id, g.is_admin, p.name, p.user_name, p.custom_data, p.phone_number, p.avatar, p.avatar_thumbnail
 	FROM chat_list g, profile p
 	WHERE 
 	g.user_id=p.user_id AND
@@ -767,19 +767,30 @@ func (req *ListGroupParticipantsRequest) ListGroupParticipants(userID uuid.UUID)
 		var memberName sql.NullString
 		var userName sql.NullString
 		var customData sql.NullString
+		var avatar sql.NullString
+		var avatarThumbnail []byte
 		var phoneNumber string
-		if err := membersRow.Scan(&memberID, &isAdmin, &memberName, &userName, &customData, &phoneNumber); err != nil {
+		if err := membersRow.Scan(&memberID,
+			&isAdmin,
+			&memberName,
+			&userName,
+			&customData,
+			&phoneNumber,
+			&avatar,
+			&avatarThumbnail); err != nil {
 			log.Println(err)
 			return nil, err
 		}
 
 		participant := &GroupParticipant{
-			UserID:      memberID,
-			IsAdmin:     (isAdmin == 1),
-			Name:        memberName.String,
-			UserName:    userName.String,
-			CustomData:  customData.String,
-			PhoneNumber: phoneNumber,
+			UserID:          memberID,
+			IsAdmin:         (isAdmin == 1),
+			Name:            memberName.String,
+			UserName:        userName.String,
+			CustomData:      customData.String,
+			PhoneNumber:     phoneNumber,
+			Avatar:          avatar.String,
+			AvatarThumbnail: avatarThumbnail,
 		}
 		list = append(list, participant)
 	}

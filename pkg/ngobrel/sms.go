@@ -20,6 +20,22 @@ type TwilioSms struct {
 	tokenID string
 }
 
+type DummySms struct {
+}
+
+func NewDummySms() *DummySms {
+	t := &DummySms{}
+	return t
+}
+
+func (t *DummySms) SetAccount(userID string, tokenID string) error {
+	return nil
+}
+
+func (t *DummySms) SendMessage(from string, to string, message string) error {
+	return nil
+}
+
 func NewTwilioSms() *TwilioSms {
 	t := &TwilioSms{}
 
@@ -57,6 +73,11 @@ func (t *TwilioSms) SendMessage(from string, to string, message string) error {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := client.Do(req)
+	if err != nil {
+		log.Println("Error connecting to Twilio")
+		log.Println(err)
+		return err
+	}
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		var data map[string]interface{}
 		decoder := json.NewDecoder(resp.Body)

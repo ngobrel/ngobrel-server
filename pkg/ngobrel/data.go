@@ -8,9 +8,12 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"strconv"
 	"time"
+
+	"github.com/minio/minio-go"
 
 	"github.com/go-redis/redis"
 
@@ -289,9 +292,28 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 	fmt.Println(userID.String())
 
 	rows, err := db.Query(`
-	SELECT b.is_admin, b.chat_type, b.excerpt, a.chat_id, a.title as chat_name, b.updated_at FROM group_list a, chat_list b WHERE a.chat_id = b.chat_id and b.user_id=$1
+	SELECT b.is_admin, 
+		b.chat_type,
+		b.excerpt,
+		a.chat_id,
+		a.title as chat_name,
+		a.avatar_thumbnail as avatar_thumbnail,
+		b.updated_at,
+		'','',''
+		FROM group_list a, chat_list b WHERE a.chat_id = b.chat_id and b.user_id=$1
 	UNION ALL
-	SELECT b.is_admin, b.chat_type, b.excerpt, a.chat_id, a.name as chat_name,  b.updated_at FROM contacts a, chat_list b WHERE a.chat_id = b.chat_id and a.user_id = b.user_id and b.user_id=$1
+	SELECT 
+		b.is_admin, 
+		b.chat_type, 
+		b.excerpt, 
+		a.chat_id, 
+		a.name as chat_name, 
+		c.avatar_thumbnail as avatar_thumbnail, 
+		b.updated_at,
+		c.phone_number,
+		c.user_name,
+		c.custom_data
+		FROM contacts a, chat_list b, profile c WHERE a.chat_id = b.chat_id and a.user_id = b.user_id and c.user_id=b.chat_id and b.user_id=$1
 	ORDER BY updated_at DESC
 	`, userID.String())
 	if err != nil {
@@ -306,13 +328,20 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 		var chatName string
 		var excerpt string
 		var isAdmin int32
+		var avatarThumbnail []byte
+		var phoneNumber sql.NullString
+		var userName sql.NullString
+		var customData sql.NullString
 
 		//var notification int64
 		var updatedAt time.Time
 
 		if err := rows.Scan(&isAdmin, &chatType, &excerpt, &chatID,
-			&chatName,
-			&updatedAt); err != nil {
+			&chatName, &avatarThumbnail,
+			&updatedAt,
+			&phoneNumber,
+			&userName,
+			&customData); err != nil {
 			return nil, err
 		}
 
@@ -320,17 +349,20 @@ func (req *ListConversationsRequest) ListConversations(userID uuid.UUID) (*ListC
 			ChatID:    chatID.String(),
 			Timestamp: updatedAt.UnixNano() / 1000000,
 			//Notification: int64(notification),
-			ChatName:     chatName,
-			Excerpt:      excerpt,
-			ChatType:     chatType,
-			IsGroupAdmin: isAdmin == 1,
+			ChatName:        chatName,
+			Excerpt:         excerpt,
+			ChatType:        chatType,
+			IsGroupAdmin:    isAdmin == 1,
+			AvatarThumbnail: avatarThumbnail,
+			PhoneNumber:     phoneNumber.String,
+			UserName:        userName.String,
+			CustomData:      customData.String,
 		}
 		list = append(list, item)
 	}
 	result := &ListConversationsResponse{
 		List: list,
 	}
-	log.Println(result)
 
 	return result, nil
 }
@@ -352,21 +384,37 @@ func (req *CreateProfileRequest) CreateProfile(srv *Server) (*CreateProfileRespo
 		}
 	}
 
+	ctx := context.Background()
+
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		log.Println(err)
+	}
+
 	if len(userID) == 0 {
 		newUUID := uuid.Must(uuid.NewV4(), nil)
 		userID = newUUID.String()
-		_, err = db.Exec(`INSERT INTO profile (user_id, phone_number, created_at, updated_at) values ($1, $2, now(), now());`, userID, req.PhoneNumber)
+		_, err = tx.Exec(`INSERT INTO profile (user_id, phone_number, created_at, updated_at) values ($1, $2, now(), now());`, userID, req.PhoneNumber)
 		if err != nil {
+			_ = tx.Rollback()
 			fmt.Println(err.Error())
 			return nil, err
 		}
 	}
 
 	fmt.Println(userID + ":" + req.DeviceID + ":" + req.PhoneNumber)
-	_, err = db.Exec(`INSERT INTO devices (user_id, device_id, updated_at, created_at, device_state) values ($1, $2, now(), now(), 0)
+	_, err = tx.Exec(`UPDATE devices set updated_at = now(), device_state = 0 WHERE device_id != $1 AND user_id=$2`, req.DeviceID, userID)
+	if err != nil {
+		_ = tx.Rollback()
+		log.Println(err)
+		return nil, err
+	}
+
+	_, err = tx.Exec(`INSERT INTO devices (user_id, device_id, updated_at, created_at, device_state) values ($1, $2, now(), now(), 0)
 	ON CONFLICT (user_id, device_id) DO UPDATE SET device_state=0, user_id=$1, device_id=$2, updated_at=now() 
 	`, userID, req.DeviceID)
 	if err != nil {
+		_ = tx.Rollback()
 		fmt.Println(err.Error())
 		return nil, err
 	}
@@ -381,8 +429,9 @@ func (req *CreateProfileRequest) CreateProfile(srv *Server) (*CreateProfileRespo
 	srv.smsClient.SendMessage(SmsSender, req.PhoneNumber, smsMessage)
 
 	log.Println("HASH:" + otpCode)
-	_, err = db.Exec(`INSERT INTO otp (otp_code, expired_at) values ($1, now() + interval '1 day')`, int64(otpHash))
+	_, err = tx.Exec(`INSERT INTO otp (otp_code, expired_at) values ($1, now() + interval '1 day')`, int64(otpHash))
 	if err != nil {
+		_ = tx.Rollback()
 		fmt.Println(err.Error())
 		return nil, err
 	}
@@ -390,6 +439,11 @@ func (req *CreateProfileRequest) CreateProfile(srv *Server) (*CreateProfileRespo
 	if DebugMode == false {
 		otpCode = ""
 	}
+
+	if err := tx.Commit(); err != nil {
+		log.Println(err)
+	}
+
 	return &CreateProfileResponse{
 		UserID:   userID,
 		OtpDebug: otpCode, // DEBUG Mode
@@ -450,9 +504,11 @@ func (req *GetProfileRequest) GetProfile(userID uuid.UUID) (*GetProfileResponse,
 }
 
 func (req *PutContactRequest) PutContact(userID uuid.UUID) (*PutContactResponse, error) {
+	log.Println("PutContact " + userID.String())
+
 	rows, err := db.Query(`SELECT user_id FROM profile where phone_number=$1`, req.PhoneNumber)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err)
 		return nil, err
 	}
 
@@ -461,15 +517,14 @@ func (req *PutContactRequest) PutContact(userID uuid.UUID) (*PutContactResponse,
 	for rows.Next() {
 		err := rows.Scan(&peerID)
 		if err != nil {
-			fmt.Println(err.Error())
+			log.Println(err)
 			return nil, err
 		}
 	}
-
 	if len(peerID) == 0 {
-		return &PutContactResponse{
-			Status: PutContactStatus_ContactIsNotInTheSystem,
-		}, nil
+		err := errors.New("target-is-not-in-the-system")
+		log.Println(err)
+		return nil, err
 	}
 
 	_, err = db.Exec(`INSERT INTO contacts (user_id, chat_id, chat_type, name, created_at, updated_at, notification) values
@@ -478,32 +533,31 @@ func (req *PutContactRequest) PutContact(userID uuid.UUID) (*PutContactResponse,
 											`,
 		userID.String(), peerID, req.ContactData.Name)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
 	return &PutContactResponse{
-		Status: PutContactStatus_Success,
+		Success: true,
 	}, nil
 
 }
 
-/**
-CREATE TABLE contacts (
-  user_id UUID not null,
-  chat_id INT not null,
-  chat_type SMALLINT not null,
-  name text,
-  created_at INT not null,
-  updated_at INT not null,
-  notification INT not null,
-  PRIMARY KEY (user_id, chat_id)
-);
-
-*/
 func (req *GetContactsRequest) GetContacts(userID uuid.UUID) (*GetContactsResponse, error) {
-	rows, err := db.Query(`SELECT chat_id, name, updated_at, notification 
-	FROM contacts 
-	WHERE user_id=$1 AND chat_type=0 ORDER BY name`, userID.String())
+	rows, err := db.Query(`
+		SELECT a.chat_id as chat_id, 
+			a.name as name, 
+			a.updated_at as updated_at, 
+			b.avatar_thumbnail as avatar_thumbnail, 
+			a.notification as notification,
+			b.phone_number as phone_number,
+			b.user_name as user_name,
+			b.custom_data as custom_data
+	FROM contacts a, profile b
+	WHERE a.user_id=$1 
+	AND a.chat_id=b.user_id
+	AND a.chat_type=0 ORDER BY name
+	`, userID.String())
 	if err != nil {
 		return nil, err
 	}
@@ -515,18 +569,31 @@ func (req *GetContactsRequest) GetContacts(userID uuid.UUID) (*GetContactsRespon
 		var chatName string
 		var updatedAt time.Time
 		var notification int64
+		var avatarThumbnail []byte
+		var phoneNumber string
+		var userName sql.NullString
+		var customData sql.NullString
 
 		if err := rows.Scan(&peerID,
 			&chatName,
 			&updatedAt,
-			&notification); err != nil {
+			&avatarThumbnail,
+			&notification,
+			&phoneNumber,
+			&userName,
+			&customData,
+		); err != nil {
 			return nil, err
 		}
 
 		item := &Contacts{
-			PeerID:       peerID.String(),
-			Name:         chatName,
-			Notification: int64(notification),
+			PeerID:          peerID.String(),
+			Name:            chatName,
+			AvatarThumbnail: avatarThumbnail,
+			Notification:    int64(notification),
+			PhoneNumber:     phoneNumber,
+			UserName:        userName.String,
+			CustomData:      customData.String,
 		}
 
 		fmt.Println(item)
@@ -700,7 +767,7 @@ func (req *ListGroupParticipantsRequest) ListGroupParticipants(userID uuid.UUID)
 	}
 
 	membersRow, err := db.Query(`
-	SELECT p.user_id, g.is_admin, p.name, p.user_name, p.custom_data, p.phone_number
+	SELECT p.user_id, g.is_admin, p.name, p.user_name, p.custom_data, p.phone_number, p.avatar, p.avatar_thumbnail
 	FROM chat_list g, profile p
 	WHERE 
 	g.user_id=p.user_id AND
@@ -720,19 +787,30 @@ func (req *ListGroupParticipantsRequest) ListGroupParticipants(userID uuid.UUID)
 		var memberName sql.NullString
 		var userName sql.NullString
 		var customData sql.NullString
+		var avatar sql.NullString
+		var avatarThumbnail []byte
 		var phoneNumber string
-		if err := membersRow.Scan(&memberID, &isAdmin, &memberName, &userName, &customData, &phoneNumber); err != nil {
+		if err := membersRow.Scan(&memberID,
+			&isAdmin,
+			&memberName,
+			&userName,
+			&customData,
+			&phoneNumber,
+			&avatar,
+			&avatarThumbnail); err != nil {
 			log.Println(err)
 			return nil, err
 		}
 
 		participant := &GroupParticipant{
-			UserID:      memberID,
-			IsAdmin:     (isAdmin == 1),
-			Name:        memberName.String,
-			UserName:    userName.String,
-			CustomData:  customData.String,
-			PhoneNumber: phoneNumber,
+			UserID:          memberID,
+			IsAdmin:         (isAdmin == 1),
+			Name:            memberName.String,
+			UserName:        userName.String,
+			CustomData:      customData.String,
+			PhoneNumber:     phoneNumber,
+			Avatar:          avatar.String,
+			AvatarThumbnail: avatarThumbnail,
 		}
 		list = append(list, participant)
 	}
@@ -911,4 +989,97 @@ func (req *AddToGroupRequest) AddToGroup(userID uuid.UUID) (*AddToGroupResponse,
 	return &AddToGroupResponse{
 		GroupID: req.GroupID,
 	}, nil
+}
+
+func uploadMedia(userID uuid.UUID, mediaID string, isEncrypted bool, fileName, contentType string, fileSize int) error {
+	_, err := db.Exec(`INSERT INTO media 
+		(uploader, file_id, created_at, is_encrypted, file_name, content_type, file_size)
+		values
+		($1, $2, now(), $3, $4, $5, $6)
+		`, userID.String(), mediaID, isEncrypted, fileName, contentType, fileSize)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func uploadProfilePicture(userID uuid.UUID, mediaID string, thumbnail []byte, fileSize int) error {
+	err := uploadMedia(userID, mediaID, false, "avatar", "application/png", fileSize)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	_, err = db.Exec(`UPDATE profile set avatar=$1, updated_at=now(), avatar_thumbnail=$2 WHERE user_id=$3`, mediaID, thumbnail, userID.String())
+
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func updateGroupAvatar(userID uuid.UUID, groupID, mediaID string, thumbnail []byte) error {
+	_, err := db.Exec(`UPDATE media set uploader=$1 WHERE uploader=$2 and file_id=$3`, groupID, userID.String(), mediaID)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	_, err = db.Exec(`UPDATE group_list set avatar=$1, updated_at=now(), avatar_thumbnail=$2 WHERE chat_id=$3`, mediaID, thumbnail, groupID)
+
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func (req *GetProfilePictureRequest) getProfilePictureStream(srv *Server, userID uuid.UUID, stream Ngobrel_GetProfilePictureServer) error {
+
+	log.Println("Get profile picture")
+	rows, err := db.Query(`SELECT avatar FROM profile where user_id=$1`, req.UserID)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	defer rows.Close()
+	var fileID sql.NullString
+	for rows.Next() {
+		if err := rows.Scan(&fileID); err != nil {
+			log.Println(err)
+			return err
+		}
+	}
+
+	if fileID.String == "" {
+		err := errors.New("no-profile-picture")
+		log.Println(err)
+		return err
+	}
+
+	obj, err := srv.minioClient.GetObject(req.UserID, fileID.String, minio.GetObjectOptions{})
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	defer obj.Close()
+	buffer := make([]byte, 32*1024)
+	for {
+		n, err := obj.Read(buffer)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+
+			log.Println(err)
+			return err
+		}
+		stream.Send(&GetProfilePictureResponse{Contents: buffer[:n]})
+	}
+	return nil
 }

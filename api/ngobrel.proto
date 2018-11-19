@@ -170,6 +170,16 @@ service Ngobrel {
     Echo
     */
     rpc Echo(EchoRequest) returns (EchoResponse) {};
+
+    /**
+    Registers an FCM token
+    */
+    rpc RegisterFCM(RegisterFCMRequest) returns (RegisterFCMResponse) {};
+
+    /**
+    Acknowledges an notification
+    */
+    rpc AckMessageNotificationStream(AckMessageNotificationStreamRequest) returns (AckMessageNotificationStreamResponse) {};
 }
 
 message GetProfilePictureRequest {
@@ -464,6 +474,18 @@ message GetMessagesRequest {
 
 message GetMessageNotificationStream {
     int64 timestamp = 1;
+    string sender = 2;
+    string recipient = 3;
+}
+
+message AckMessageNotificationStreamRequest {
+    int64 timestamp = 1;
+    string sender = 2;
+    string recipient = 3;
+}
+
+message AckMessageNotificationStreamResponse {
+    bool success = 1;
 }
 
 message GetMessagesResponseItem {
@@ -525,4 +547,12 @@ message CreateGroupConversationRequest {
 
 message CreateGroupConversationResponse {
     string groupID = 1;
+}
+
+message RegisterFCMRequest {
+    string FCMToken = 1;
+}
+
+message RegisterFCMResponse  {
+    bool success = 1;
 }

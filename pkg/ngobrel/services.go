@@ -6,9 +6,15 @@ import (
 	"encoding/hex"
 	"errors"
 	"io"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
+	"sync"
 	"time"
+
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 
 	"github.com/disintegration/imaging"
 
@@ -22,11 +28,17 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+type FCMAuth struct {
+	client  *http.Client
+	expired time.Time
+}
+
 type Server struct {
-	receiptStream map[string]Ngobrel_GetMessageNotificationServer
+	receiptStream sync.Map
 	smsClient     Sms
 	minioClient   minio.Client
 	tmpDir        string
+	fcmAuth       FCMAuth
 }
 
 func NewServer(sms Sms, minioClient minio.Client) *Server {
@@ -35,11 +47,33 @@ func NewServer(sms Sms, minioClient minio.Client) *Server {
 		log.Println("TMPDIR environment variable is not set, using /tmp as temp directory.")
 		tmpDir = "/tmp"
 	}
+
+	fcmConfigPath := os.Getenv("FCM_CONFIG_PATH")
+	if fcmConfigPath == "" {
+		log.Fatal("FCM_CONFIG_PATH is not set")
+	}
+
+	data, err := ioutil.ReadFile(fcmConfigPath)
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+	googleConfig, err := google.JWTConfigFromJSON(data, "https://www.googleapis.com/auth/firebase.messaging")
+	if err != nil {
+		log.Fatal("Unable to login to Google Firebase")
+	}
+
+	fcmAuth := FCMAuth{
+		client:  googleConfig.Client(oauth2.NoContext),
+		expired: time.Now().Add(1 * time.Hour),
+	}
+
+	log.SetFlags(log.Lshortfile)
 	return &Server{
-		receiptStream: make(map[string]Ngobrel_GetMessageNotificationServer),
-		smsClient:     sms,
-		minioClient:   minioClient,
-		tmpDir:        tmpDir,
+		smsClient:   sms,
+		minioClient: minioClient,
+		tmpDir:      tmpDir,
+		fcmAuth:     fcmAuth,
 	}
 }
 
@@ -78,6 +112,9 @@ func getDeviceID(ctx context.Context) (uuid.UUID, error) {
 	}
 
 	id, err := getDeviceIDFromToken(token)
+	if err != nil {
+		return uuid.Nil, err
+	}
 	return uuid.FromString(id)
 }
 
@@ -88,6 +125,9 @@ func getUserID(ctx context.Context) (uuid.UUID, error) {
 	}
 
 	id, err := getUserIDFromToken(token)
+	if err != nil {
+		return uuid.Nil, err
+	}
 	return uuid.FromString(id)
 }
 
@@ -555,4 +595,24 @@ func (srv *Server) GetProfilePicture(in *GetProfilePictureRequest, stream Ngobre
 	}
 
 	return in.getProfilePictureStream(srv, userID, stream)
+}
+
+func (srv *Server) RegisterFCM(ctx context.Context, in *RegisterFCMRequest) (*RegisterFCMResponse, error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return in.RegisterFCM(userID)
+}
+
+func (srv *Server) AckMessageNotificationStream(ctx context.Context, in *AckMessageNotificationStreamRequest) (*AckMessageNotificationStreamResponse, error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return in.AckMessageNotificationStream(userID)
 }

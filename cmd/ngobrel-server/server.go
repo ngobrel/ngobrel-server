@@ -33,6 +33,7 @@ func main() {
 
 	minioClient, err := minio.New(os.Getenv("MINIO_URL"), os.Getenv("MINIO_ACCESS_KEY"), os.Getenv("MINIO_SECRET_KEY"), false)
 	if err != nil {
+		log.Println("Minio error: " + os.Getenv("MINIO_URL"))
 		log.Fatalln(err)
 	}
 

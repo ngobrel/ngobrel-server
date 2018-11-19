@@ -46,8 +46,10 @@ func InitDB() {
 
 func getUserIDFromToken(token string) (string, error) {
 	val, err := redisClient.Get("UID-" + token).Result()
-	if err != nil {
+	if err != nil || (err == nil && val == "") {
 		log.Println(err)
+
+		err = errors.New("invalid-session")
 		return "", err
 	}
 	return val, nil
@@ -55,8 +57,9 @@ func getUserIDFromToken(token string) (string, error) {
 
 func getDeviceIDFromToken(token string) (string, error) {
 	val, err := redisClient.Get("DEV-" + token).Result()
-	if err != nil {
+	if err != nil || (err == nil && val == "") {
 		log.Println(err)
+		err = errors.New("invalid-session")
 		return "", err
 	}
 	return val, nil
@@ -177,10 +180,50 @@ func (req *PutMessageRequest) putMessageToUserID(srv *Server, tx *sql.Tx, isGrou
 	return nil
 }
 
+func getNameFromUserID(userID uuid.UUID) (string, error) {
+	fmt.Println(userID.String())
+
+	rows, err := db.Query(`
+	SELECT 
+		a.name as chat_name, 
+		c.phone_number,
+		c.user_name,
+		c.custom_data
+		FROM contacts a, profile c WHERE a.user_id = c.user_id AND c.user_id = $1
+	`, userID.String())
+	if err != nil {
+		return "", err
+	}
+	defer rows.Close()
+
+	ret := ""
+	for rows.Next() {
+		var chatName string
+		var phoneNumber sql.NullString
+		var userName sql.NullString
+		var customData sql.NullString
+
+		if err := rows.Scan(&chatName,
+			&phoneNumber,
+			&userName,
+			&customData); err != nil {
+
+			log.Println(err)
+			return "", err
+		}
+		ret = chatName
+		if ret == "" {
+			ret = phoneNumber.String
+		}
+
+	}
+
+	return ret, nil
+}
+
 func (req *PutMessageRequest) putMessageToDeviceID(srv *Server, tx *sql.Tx, senderID uuid.UUID, senderDeviceID uuid.UUID, recipientDeviceID uuid.UUID, now float64) error {
 
 	log.Println("putMessageToDeviceID: ", senderID.String(), req.MessageID, recipientDeviceID.String(), req.RecipientID)
-
 	_, err := tx.Exec(`INSERT INTO conversations values ($1, $2, $3, $4, $5, to_timestamp($6), $7, $8)`,
 		req.RecipientID, req.MessageID,
 		senderID.String(), senderDeviceID.String(), recipientDeviceID.String(),
@@ -192,11 +235,41 @@ func (req *PutMessageRequest) putMessageToDeviceID(srv *Server, tx *sql.Tx, send
 		return err
 	}
 
-	stream, ok := srv.receiptStream[recipientDeviceID.String()]
-	if ok && stream != nil {
+	data, ok := srv.receiptStream.Load(recipientDeviceID.String())
+	if ok && data != nil {
+		stream := data.(Ngobrel_GetMessageNotificationServer)
 		fmt.Println("Ping " + recipientDeviceID.String())
 		now := time.Now().UnixNano() / 1000
-		stream.Send(&GetMessageNotificationStream{Timestamp: now})
+		stream.Send(&GetMessageNotificationStream{Timestamp: now, Sender: senderID.String(), Recipient: req.RecipientID})
+		key := fmt.Sprintf("NOTIFICATION-%s%s-%d", senderID.String(), req.RecipientID, now)
+		redisClient.Set(key, "1", 24*time.Hour)
+
+		// 1. NotificationStream is sent to the client, a redis key is set
+		// 2.a. In active mode, client calls AckNotification, which removes the key
+		// 2.b. otherwise, the key stays until it expires
+		// 3. The key is checked here, if it exists, an FCM notification is sent
+		timer := time.NewTimer(time.Second * 1)
+		go func() {
+			<-timer.C
+			key = fmt.Sprintf("NOTIFICATION-%s%s-%d", senderID.String(), req.RecipientID, now)
+			val, err := redisClient.Get(key).Result()
+			if err != nil {
+				log.Println("Notification already cleared")
+				return
+			}
+			log.Println("Sending FCM notification")
+			if val != "" {
+				senderName, err := getNameFromUserID(senderID)
+				log.Println("--->", val, "--->", senderName)
+
+				if err != nil {
+					log.Println(err)
+				}
+				srv.sendFCM(senderName, req.RecipientID, req.MessageExcerpt)
+			}
+		}()
+	} else {
+		return errors.New("invalid-stream")
 	}
 
 	return nil
@@ -204,7 +277,7 @@ func (req *PutMessageRequest) putMessageToDeviceID(srv *Server, tx *sql.Tx, send
 
 func (req *GetMessagesRequest) getMessageNotificationStream(srv *Server, recipientDeviceID uuid.UUID, stream Ngobrel_GetMessageNotificationServer) error {
 	// subscribe
-	srv.receiptStream[recipientDeviceID.String()] = stream
+	srv.receiptStream.Store(recipientDeviceID.String(), stream)
 	log.Println(recipientDeviceID.String() + " is susbscribed")
 	for {
 		// suspend
@@ -1082,4 +1155,23 @@ func (req *GetProfilePictureRequest) getProfilePictureStream(srv *Server, userID
 		stream.Send(&GetProfilePictureResponse{Contents: buffer[:n]})
 	}
 	return nil
+}
+
+func (req *AckMessageNotificationStreamRequest) AckMessageNotificationStream(userID uuid.UUID) (*AckMessageNotificationStreamResponse, error) {
+	if userID.String() != req.Recipient {
+		err := errors.New("recipient-mismatch")
+		log.Println(err, userID.String(), ":", req.Recipient)
+		return nil, err
+	}
+	log.Println("Removing notification")
+
+	//key := fmt.Sprintf("NOTIFICATION-%s%s-%d", req.Sender, req.Recipient, req.Timestamp)
+	//err := redisClient.Del(key).Err()
+
+	//if err != nil {
+	//	log.Println(err)
+	// ignore
+	//}
+
+	return &AckMessageNotificationStreamResponse{Success: true}, nil
 }

@@ -180,30 +180,42 @@ func (req *PutMessageRequest) putMessageToUserID(srv *Server, tx *sql.Tx, isGrou
 	return nil
 }
 
-func getNameFromUserID(userID uuid.UUID) (string, error) {
-	fmt.Println(userID.String())
+func getNameFromUserID(senderID string, recipientID string) (string, error) {
 
 	rows, err := db.Query(`
 	SELECT 
-		a.name as chat_name, 
-		c.phone_number,
-		c.user_name,
-		c.custom_data
-		FROM contacts a, profile c WHERE a.user_id = c.user_id AND c.user_id = $1
-	`, userID.String())
+		'' as chat_name,
+		name as profile_name, 
+phone_number,
+		user_name,
+		custom_data
+		FROM profile  WHERE user_id = $1
+UNION 
+SELECT 
+name as chat_name,
+'' as profile_name,                
+'' as phone_number,
+'' as user_name,
+'' as custom_data
+		FROM contacts  WHERE chat_id = $1 AND user_id = $2
+
+	`, senderID, recipientID)
 	if err != nil {
 		return "", err
 	}
 	defer rows.Close()
 
-	ret := ""
+	altName := ""
+	name := ""
+
 	for rows.Next() {
-		var chatName string
+		var chatName sql.NullString
+		var profileName sql.NullString
 		var phoneNumber sql.NullString
 		var userName sql.NullString
 		var customData sql.NullString
 
-		if err := rows.Scan(&chatName,
+		if err := rows.Scan(&chatName, &profileName,
 			&phoneNumber,
 			&userName,
 			&customData); err != nil {
@@ -211,14 +223,24 @@ func getNameFromUserID(userID uuid.UUID) (string, error) {
 			log.Println(err)
 			return "", err
 		}
-		ret = chatName
-		if ret == "" {
-			ret = phoneNumber.String
+
+		if chatName.String != "" {
+			name = chatName.String
 		}
 
+		if profileName.String != "" {
+			name = profileName.String
+		}
+
+		if phoneNumber.String != "" {
+			altName = phoneNumber.String
+		}
+	}
+	if name == "" {
+		name = altName
 	}
 
-	return ret, nil
+	return name, nil
 }
 
 func (req *PutMessageRequest) putMessageToDeviceID(srv *Server, tx *sql.Tx, senderID uuid.UUID, senderDeviceID uuid.UUID, recipientDeviceID uuid.UUID, now float64) error {
@@ -259,7 +281,7 @@ func (req *PutMessageRequest) putMessageToDeviceID(srv *Server, tx *sql.Tx, send
 			}
 			log.Println("Sending FCM notification")
 			if val != "" {
-				senderName, err := getNameFromUserID(senderID)
+				senderName, err := getNameFromUserID(senderID.String(), req.RecipientID)
 				log.Println("--->", val, "--->", senderName)
 
 				if err != nil {

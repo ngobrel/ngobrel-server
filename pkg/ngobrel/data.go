@@ -154,6 +154,7 @@ func (req *PutMessageRequest) putMessageToUserID(srv *Server, tx *sql.Tx, isGrou
 			return err
 		}
 		defer rows.Close()
+		found := false
 		for rows.Next() {
 			var deviceID uuid.UUID
 			if err := rows.Scan(&deviceID); err != nil {
@@ -164,15 +165,19 @@ func (req *PutMessageRequest) putMessageToUserID(srv *Server, tx *sql.Tx, isGrou
 			if err != nil {
 				return err
 			}
+			found = true
 		}
-		if isGroup == false {
-			fmt.Println("Updating chat_list")
+		if found && isGroup == false {
+			log.Println("Updating chat_list")
 			_, err = tx.Exec(`
 			INSERT INTO chat_list  (user_id, chat_id, created_at, updated_at, excerpt) values ($3, $2, now(), now(), $1) ON CONFLICT (user_id, chat_id) DO UPDATE SET excerpt=$1, updated_at=now()`,
 				req.MessageExcerpt, recipientID.String(), senderID.String())
 			if err != nil {
 				fmt.Println(err)
 			}
+		}
+		if found == false {
+			log.Println("No devices found for recipient ", recipientID.String())
 		}
 	} else {
 		// XXX TODO Encrypted version
@@ -765,6 +770,7 @@ func (req *VerifyOTPRequest) VerifyOTP() (*VerifyOTPResponse, error) {
 	}
 
 	if userID == "" {
+		log.Println("No user found by number ", req.PhoneNumber)
 		return nil, errors.New("verification-otp-no-user-found")
 	}
 
@@ -792,7 +798,6 @@ func (req *VerifyOTPRequest) VerifyOTP() (*VerifyOTPResponse, error) {
 	rows, err := db.Query(`DELETE FROM otp WHERE otp_code=$1 AND expired_at > now() RETURNING otp_code`, int64(otpHash))
 	if err != nil {
 		log.Println(err)
-		print("Omama")
 		return nil, err
 	}
 	defer rows.Close()
@@ -806,6 +811,7 @@ func (req *VerifyOTPRequest) VerifyOTP() (*VerifyOTPResponse, error) {
 		}
 
 		if dbOTPHash == otpHash {
+			log.Println("Verified")
 
 			_, err := db.Exec(`UPDATE devices set updated_at = now(), device_state = 1 WHERE device_id=$1 AND user_id=$2`, deviceID, userID)
 			if err != nil {
@@ -834,6 +840,7 @@ func (req *VerifyOTPRequest) VerifyOTP() (*VerifyOTPResponse, error) {
 		}
 	}
 
+	log.Println("Verification failed for", req.PhoneNumber)
 	return nil, errors.New("verification-otp-failed")
 }
 

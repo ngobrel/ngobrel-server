@@ -30,7 +30,7 @@ type dataContents struct {
 	Status      string `json:"status"`
 }
 
-func (srv *Server) sendFCM(sender string, recipient string, excerpt string) {
+func (srv *Server) sendFCM(chatID string, sender string, recipient string, excerpt string) {
 	fcmToken, err := redisClient.Get("FCM-" + recipient).Result()
 	if err != nil {
 		log.Println("Error getting FCM token of ", recipient)
@@ -47,6 +47,7 @@ func (srv *Server) sendFCM(sender string, recipient string, excerpt string) {
 					Title: sender,
 				},
 				Data: dataContents{
+					Id:          chatID,
 					ClickAction: "FLUTTER_NOTIFICATION_CLICK",
 				},
 			},

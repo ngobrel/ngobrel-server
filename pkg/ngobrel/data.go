@@ -292,7 +292,7 @@ func (req *PutMessageRequest) putMessageToDeviceID(srv *Server, tx *sql.Tx, send
 				if err != nil {
 					log.Println(err)
 				}
-				srv.sendFCM(senderName, req.RecipientID, req.MessageExcerpt)
+				srv.sendFCM(senderID.String(), senderName, req.RecipientID, req.MessageExcerpt)
 			}
 		}()
 	} else {

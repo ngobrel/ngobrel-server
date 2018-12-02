@@ -44,7 +44,7 @@ service Ngobrel {
     /**
     Gets media file
     */
-//    rpc GetMedia(stream GetMediaRequest) returns(GetMediaResponse) {}
+    rpc GetMedia(GetMediaRequest) returns(stream GetMediaResponse) {}
 
     /**
     Creates a group conversation
@@ -107,9 +107,9 @@ service Ngobrel {
 //    rpc GetMessageState(GetMessageStateRequest) returns (GetMessageStateResponse) {};
 
     /**
-    Sets the state of a particular message
+    Sets the reception state of a particular message
     */
-//    rpc PutMessageState(PutMessageStateRequest) returns (PutMessageStateResponse) {};
+    rpc PutMessageState(PutMessageStateRequest) returns (PutMessageStateResponse) {};
     
     /**
     Gets the reception state of a particular message
@@ -393,13 +393,13 @@ enum MessageReceptionState {
 }
 
 message PutMessageStateRequest {
-    string messageID = 1;
+    int64 messageID = 1;
     MessageReceptionState status = 2;
+    string chatID = 3;
 }
 
 message PutMessageStateResponse {
     bool success = 1;
-    string message = 2;
 }
 
 message PutMessageReceptionStateRequest {
@@ -465,7 +465,7 @@ message GetMediaRequest {
 }
 
 message GetMediaResponse {
-    bytes content = 1;
+    bytes contents = 1;
 }
 
 message GetMessagesRequest {
@@ -510,6 +510,7 @@ message PutMessageRequest {
     string  messageContents     = 4;
     bool    messageEncrypted    = 5;
     string  messageExcerpt      = 6;
+    int64   messageType         = 7;
 }
 
 message PublicGetKeysRequest {

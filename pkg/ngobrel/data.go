@@ -6,11 +6,13 @@ import (
 	"database/sql"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/minio/minio-go"
@@ -150,7 +152,7 @@ func (req *PutMessageRequest) putMessageToUserID(srv *Server, tx *sql.Tx, isGrou
 	if req.MessageEncrypted == false {
 		rows, err := db.Query(`SELECT device_id FROM devices WHERE user_id=$1 AND device_state = 1`, recipientID.String())
 		if err != nil {
-			fmt.Println("err: " + err.Error())
+			log.Println(err)
 			return err
 		}
 		defer rows.Close()
@@ -158,22 +160,26 @@ func (req *PutMessageRequest) putMessageToUserID(srv *Server, tx *sql.Tx, isGrou
 		for rows.Next() {
 			var deviceID uuid.UUID
 			if err := rows.Scan(&deviceID); err != nil {
+				log.Println(err)
 				return err
 			}
 
 			err = req.putMessageToDeviceID(srv, tx, senderID, senderDeviceID, deviceID, now)
 			if err != nil {
+				log.Println(err)
 				return err
 			}
 			found = true
 		}
 		if found && isGroup == false {
+			time.Sleep(100 * time.Millisecond)
 			log.Println("Updating chat_list")
 			_, err = tx.Exec(`
 			INSERT INTO chat_list  (user_id, chat_id, created_at, updated_at, excerpt) values ($3, $2, now(), now(), $1) ON CONFLICT (user_id, chat_id) DO UPDATE SET excerpt=$1, updated_at=now()`,
 				req.MessageExcerpt, recipientID.String(), senderID.String())
 			if err != nil {
-				fmt.Println(err)
+				log.Println(err)
+				return err
 			}
 		}
 		if found == false {
@@ -250,6 +256,7 @@ name as chat_name,
 
 func (req *PutMessageRequest) putMessageToDeviceID(srv *Server, tx *sql.Tx, senderID uuid.UUID, senderDeviceID uuid.UUID, recipientDeviceID uuid.UUID, now float64) error {
 
+	time.Sleep(100 * time.Millisecond)
 	log.Println("putMessageToDeviceID: ", senderID.String(), req.MessageID, recipientDeviceID.String(), req.RecipientID)
 	_, err := tx.Exec(`INSERT INTO conversations values ($1, $2, $3, $4, $5, to_timestamp($6), $7, $8)`,
 		req.RecipientID, req.MessageID,
@@ -257,56 +264,77 @@ func (req *PutMessageRequest) putMessageToDeviceID(srv *Server, tx *sql.Tx, send
 		now, req.MessageContents, req.MessageEncrypted)
 
 	if err != nil {
-		fmt.Println(req.MessageID)
-		fmt.Println(err.Error())
+		log.Println(req.MessageID)
+		log.Println(err)
 		return err
 	}
 
-	data, ok := srv.receiptStream.Load(recipientDeviceID.String())
-	if ok && data != nil {
-		stream := data.(Ngobrel_GetMessageNotificationServer)
-		fmt.Println("Ping " + recipientDeviceID.String())
-		now := time.Now().UnixNano() / 1000
-		stream.Send(&GetMessageNotificationStream{Timestamp: now, Sender: senderID.String(), Recipient: req.RecipientID})
-		key := fmt.Sprintf("NOTIFICATION-%s%s-%d", senderID.String(), req.RecipientID, now)
-		redisClient.Set(key, "1", 24*time.Hour)
-
-		// 1. NotificationStream is sent to the client, a redis key is set
-		// 2.a. In active mode, client calls AckNotification, which removes the key
-		// 2.b. otherwise, the key stays until it expires
-		// 3. The key is checked here, if it exists, an FCM notification is sent
-		timer := time.NewTimer(time.Second * 1)
-		go func() {
-			<-timer.C
-			key = fmt.Sprintf("NOTIFICATION-%s%s-%d", senderID.String(), req.RecipientID, now)
-			val, err := redisClient.Get(key).Result()
-			if err != nil {
-				log.Println("Notification already cleared")
-				return
-			}
-			log.Println("Sending FCM notification")
-			if val != "" {
-				senderName, err := getNameFromUserID(senderID.String(), req.RecipientID)
-				log.Println("--->", val, "--->", senderName)
-
-				if err != nil {
-					log.Println(err)
-				}
-				srv.sendFCM(senderID.String(), senderName, req.RecipientID, req.MessageExcerpt)
-			}
-		}()
-	} else {
-		return errors.New("invalid-stream")
+	if req.MessageType != 1 {
+		log.Println("Sending FCM notification")
+		senderName, _ := getNameFromUserID(senderID.String(), req.RecipientID)
+		log.Println("--->", senderName)
+		ts := time.Now().UnixNano() / 1000
+		srv.sendFCM(senderID.String(), senderName, req.RecipientID, req.MessageExcerpt, ts)
 	}
+	/*
+		data, ok := srv.receiptStream.Load(recipientDeviceID.String())
+		if ok && data != nil {
+			stream := data.(Ngobrel_GetMessageNotificationServer)
+			fmt.Println("Ping " + recipientDeviceID.String())
+			now := time.Now().UnixNano() / 1000
+			stream.Send(&GetMessageNotificationStream{Timestamp: now, Sender: senderID.String(), Recipient: req.RecipientID})
+			key := fmt.Sprintf("NOTIFICATION-%s%s-%d", senderID.String(), req.RecipientID, now)
+			redisClient.Set(key, "1", 24*time.Hour)
+
+			// 1. NotificationStream is sent to the client, a redis key is set
+			// 2.a. In active mode, client calls AckNotification, which removes the key
+			// 2.b. otherwise, the key stays until it expires
+			// 3. The key is checked here, if it exists, an FCM notification is sent
+			timer := time.NewTimer(time.Second * 1)
+			go func() {
+				<-timer.C
+				key = fmt.Sprintf("NOTIFICATION-%s%s-%d", senderID.String(), req.RecipientID, now)
+				val, err := redisClient.Get(key).Result()
+				if err != nil {
+					log.Println("Notification already cleared")
+					return
+				}
+				log.Println("Sending FCM notification")
+				if val != "" {
+					senderName, err := getNameFromUserID(senderID.String(), req.RecipientID)
+					log.Println("--->", val, "--->", senderName)
+
+					if err != nil {
+						log.Println(err)
+					}
+					srv.sendFCM(senderID.String(), senderName, req.RecipientID, req.MessageExcerpt, now)
+				}
+			}()
+		} else {
+			return errors.New("invalid-stream")
+		}
+	*/
 
 	return nil
 }
 
 func (req *GetMessagesRequest) getMessageNotificationStream(srv *Server, recipientDeviceID uuid.UUID, stream Ngobrel_GetMessageNotificationServer) error {
 	// subscribe
+	p := fmt.Sprintf("%p", stream)
+	lastP := p
 	srv.receiptStream.Store(recipientDeviceID.String(), stream)
 	log.Println(recipientDeviceID.String() + " is susbscribed")
 	for {
+		s, _ := srv.receiptStream.Load(recipientDeviceID.String())
+		if s == nil {
+			log.Println("Discarding empty stream")
+			break
+		}
+		p := fmt.Sprintf("%p", s)
+		if p != lastP {
+			log.Println("Discarding dangled stream")
+			break
+		}
 		// suspend
 		fmt.Println("Notification stream for " + recipientDeviceID.String())
 		time.Sleep(5 * 60 * time.Second)
@@ -1139,6 +1167,58 @@ func updateGroupAvatar(userID uuid.UUID, groupID, mediaID string, thumbnail []by
 	return nil
 }
 
+func (req *GetMediaRequest) getMediaStream(srv *Server, userID uuid.UUID, stream Ngobrel_GetMediaServer) error {
+
+	log.Println("Get media")
+	rows, err := db.Query(`SELECT uploader, file_id, is_encrypted, file_name, content_type, file_size FROM media where file_id=$1`, req.MediaID)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	defer rows.Close()
+	var uploader sql.NullString
+	var fileID sql.NullString
+	var fileName sql.NullString
+	var contentType sql.NullString
+	var fileSize int
+	var isEncrypted bool
+	for rows.Next() {
+		if err := rows.Scan(&uploader, &fileID, &isEncrypted, &fileName, &contentType, &fileSize); err != nil {
+			log.Println(err)
+			return err
+		}
+	}
+
+	if fileID.String == "" {
+		err := errors.New("no-media-file")
+		log.Println(err)
+		return err
+	}
+
+	obj, err := srv.minioClient.GetObject(uploader.String, fileID.String, minio.GetObjectOptions{})
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	defer obj.Close()
+	buffer := make([]byte, 32*1024)
+	for {
+		n, err := obj.Read(buffer)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+
+			log.Println(err)
+			return err
+		}
+		stream.Send(&GetMediaResponse{Contents: buffer[:n]})
+	}
+	return nil
+}
+
 func (req *GetProfilePictureRequest) getProfilePictureStream(srv *Server, userID uuid.UUID, stream Ngobrel_GetProfilePictureServer) error {
 
 	log.Println("Get profile picture")
@@ -1203,4 +1283,57 @@ func (req *AckMessageNotificationStreamRequest) AckMessageNotificationStream(use
 	//}
 
 	return &AckMessageNotificationStreamResponse{Success: true}, nil
+}
+
+func (req *PutMessageStateRequest) PutMessageState(srv *Server, userID uuid.UUID, senderDeviceID uuid.UUID, now float64) (*PutMessageStateResponse, error) {
+
+	log.Println(fmt.Sprintf("PutMessageState %s %s %f", userID.String(), senderDeviceID.String(), now))
+
+	contents, _ := json.Marshal(&ManagementMessage{
+		MessageType: "management",
+		Text:        "reception-receipt",
+		Command: ManagementReceptionStateMessage{
+			Type:      req.Status,
+			MessageID: req.MessageID,
+		},
+	})
+
+	for true {
+		outgoingMessageID := (time.Now().UnixNano() / 1000000) - 946659600000 // 2000-01-01T00:00:00
+		receipt := &PutMessageRequest{
+			RecipientID:      req.ChatID,
+			MessageID:        outgoingMessageID,
+			MessageExcerpt:   "",
+			MessageEncrypted: false,
+			MessageContents:  string(contents),
+			MessageType:      1, // management
+		}
+
+		chatID, err := uuid.FromString(req.ChatID)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		err = receipt.putMessageToUserIDCheckGroup(srv, userID, senderDeviceID, chatID, now)
+		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key value violates unique constraint \"conversations_pkey\"") {
+				log.Println(err, " Try again")
+				time.Sleep(100 * time.Millisecond)
+				continue
+			}
+			if strings.Contains(err.Error(), "could not serialize access due to concurrent update") {
+				log.Println(err, " Try again")
+				time.Sleep(100 * time.Millisecond)
+				continue
+			}
+			log.Println(err)
+			return nil, err
+		}
+		break
+	}
+
+	return &PutMessageStateResponse{
+		Success: true,
+	}, nil
 }

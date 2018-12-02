@@ -41,6 +41,17 @@ type Server struct {
 	fcmAuth       FCMAuth
 }
 
+type ManagementMessage struct {
+	MessageType string                          `json:"messageType"`
+	Text        string                          `json:"text"`
+	Command     ManagementReceptionStateMessage `json:"command"`
+}
+
+type ManagementReceptionStateMessage struct {
+	Type      MessageReceptionState `json:"type"`
+	MessageID int64                 `json:"messageId"`
+}
+
 func NewServer(sms Sms, minioClient minio.Client) *Server {
 	tmpDir := os.Getenv("TMPDIR")
 	if tmpDir == "" {
@@ -597,6 +608,16 @@ func (srv *Server) GetProfilePicture(in *GetProfilePictureRequest, stream Ngobre
 	return in.getProfilePictureStream(srv, userID, stream)
 }
 
+func (srv *Server) GetMedia(in *GetMediaRequest, stream Ngobrel_GetMediaServer) error {
+	userID, err := getUserID(stream.Context())
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return in.getMediaStream(srv, userID, stream)
+}
+
 func (srv *Server) RegisterFCM(ctx context.Context, in *RegisterFCMRequest) (*RegisterFCMResponse, error) {
 	userID, err := getUserID(ctx)
 	if err != nil {
@@ -615,4 +636,22 @@ func (srv *Server) AckMessageNotificationStream(ctx context.Context, in *AckMess
 	}
 
 	return in.AckMessageNotificationStream(userID)
+}
+
+func (srv *Server) PutMessageState(ctx context.Context, in *PutMessageStateRequest) (*PutMessageStateResponse, error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	senderDeviceID, err := getDeviceID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now().UnixNano() / 1000.0 // in microsecs
+	nowFloat := float64(now) / 1000000.0  // in secs
+
+	return in.PutMessageState(srv, userID, senderDeviceID, nowFloat)
 }

@@ -2,6 +2,8 @@ package ngobrel
 
 import (
 	"encoding/json"
+	fmt "fmt"
+	"io/ioutil"
 	"log"
 	"strings"
 	"time"
@@ -26,11 +28,12 @@ type messageContents struct {
 
 type dataContents struct {
 	ClickAction string `json:"click_action"`
-	Id          string `json:"id"`
-	Status      string `json:"status"`
+	ChatID      string `json:"chatID"`
+	RecipientID string `json:"recipientID"`
+	Timestamp   string `json:"timestamp"`
 }
 
-func (srv *Server) sendFCM(chatID string, sender string, recipient string, excerpt string) {
+func (srv *Server) sendFCM(chatID string, sender string, recipient string, excerpt string, now int64) {
 	fcmToken, err := redisClient.Get("FCM-" + recipient).Result()
 	if err != nil {
 		log.Println("Error getting FCM token of ", recipient)
@@ -47,8 +50,10 @@ func (srv *Server) sendFCM(chatID string, sender string, recipient string, excer
 					Title: sender,
 				},
 				Data: dataContents{
-					Id:          chatID,
+					ChatID:      chatID,
+					RecipientID: recipient,
 					ClickAction: "FLUTTER_NOTIFICATION_CLICK",
+					Timestamp:   fmt.Sprintf("%s", now),
 				},
 			},
 		}
@@ -67,6 +72,10 @@ func (srv *Server) sendFCM(chatID string, sender string, recipient string, excer
 			return
 		}
 		log.Println(resp)
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+
+		log.Println(string(bodyBytes))
+
 	}
 }
 

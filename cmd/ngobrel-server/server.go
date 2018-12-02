@@ -38,9 +38,10 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	pb.InitDB()
 	s := grpc.NewServer()
 	server := pb.NewServer(smsClient, *minioClient)
+	server.InitDB()
+
 	pb.RegisterNgobrelServer(s, server)
 	// Register reflection service on gRPC server.
 	reflection.Register(s)

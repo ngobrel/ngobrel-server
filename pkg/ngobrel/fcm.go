@@ -36,7 +36,7 @@ type dataContents struct {
 func (srv *Server) sendFCM(chatID string, sender string, recipient string, excerpt string, now int64, isManagement bool) {
 
 	log.Println("sendFCM", sender, excerpt, isManagement)
-	fcmToken, err := redisClient.Get("FCM-" + recipient).Result()
+	fcmToken, err := srv.redisClient.Get("FCM-" + recipient).Result()
 	if err != nil {
 		log.Println("Error getting FCM token of ", recipient)
 		log.Println(err)
@@ -96,9 +96,9 @@ func (srv *Server) sendFCM(chatID string, sender string, recipient string, excer
 	}
 }
 
-func (req *RegisterFCMRequest) RegisterFCM(userID uuid.UUID) (*RegisterFCMResponse, error) {
+func (req *RegisterFCMRequest) RegisterFCM(srv *Server, userID uuid.UUID) (*RegisterFCMResponse, error) {
 	log.Println("Registering FCM for ", userID.String())
-	err := redisClient.Set("FCM-"+userID.String(), req.FCMToken, time.Duration(24*time.Hour)).Err()
+	err := srv.redisClient.Set("FCM-"+userID.String(), req.FCMToken, time.Duration(24*time.Hour)).Err()
 
 	if err != nil {
 		log.Println("Error registering FCM token for user " + userID.String())

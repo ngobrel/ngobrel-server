@@ -33,7 +33,9 @@ type dataContents struct {
 	Timestamp   string `json:"timestamp"`
 }
 
-func (srv *Server) sendFCM(chatID string, sender string, recipient string, excerpt string, now int64) {
+func (srv *Server) sendFCM(chatID string, sender string, recipient string, excerpt string, now int64, isManagement bool) {
+
+	log.Println("sendFCM", sender, excerpt, isManagement)
 	fcmToken, err := redisClient.Get("FCM-" + recipient).Result()
 	if err != nil {
 		log.Println("Error getting FCM token of ", recipient)
@@ -41,22 +43,37 @@ func (srv *Server) sendFCM(chatID string, sender string, recipient string, excer
 		return
 	}
 	if fcmToken != "" {
-
-		msg := &FCMNotificationMessage{
-			Message: messageBody{
-				Token: fcmToken,
-				Notification: messageContents{
-					Body:  excerpt,
-					Title: sender,
+		var msg *FCMNotificationMessage
+		if isManagement || excerpt == "" {
+			msg = &FCMNotificationMessage{
+				Message: messageBody{
+					Token: fcmToken,
+					Data: dataContents{
+						ChatID:      chatID,
+						RecipientID: recipient,
+						ClickAction: "FLUTTER_NOTIFICATION_CLICK",
+						Timestamp:   fmt.Sprintf("%s", now),
+					},
 				},
-				Data: dataContents{
-					ChatID:      chatID,
-					RecipientID: recipient,
-					ClickAction: "FLUTTER_NOTIFICATION_CLICK",
-					Timestamp:   fmt.Sprintf("%s", now),
+			}
+		} else {
+			msg = &FCMNotificationMessage{
+				Message: messageBody{
+					Token: fcmToken,
+					Notification: messageContents{
+						Body:  excerpt,
+						Title: sender,
+					},
+					Data: dataContents{
+						ChatID:      chatID,
+						RecipientID: recipient,
+						ClickAction: "FLUTTER_NOTIFICATION_CLICK",
+						Timestamp:   fmt.Sprintf("%s", now),
+					},
 				},
-			},
+			}
 		}
+
 		str, err := json.Marshal(msg)
 
 		if err != nil {

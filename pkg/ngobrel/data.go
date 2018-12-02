@@ -269,13 +269,11 @@ func (req *PutMessageRequest) putMessageToDeviceID(srv *Server, tx *sql.Tx, send
 		return err
 	}
 
-	if req.MessageType != 1 {
-		log.Println("Sending FCM notification")
-		senderName, _ := getNameFromUserID(senderID.String(), req.RecipientID)
-		log.Println("--->", senderName)
-		ts := time.Now().UnixNano() / 1000
-		srv.sendFCM(senderID.String(), senderName, req.RecipientID, req.MessageExcerpt, ts)
-	}
+	log.Println("Sending FCM notification")
+	senderName, _ := getNameFromUserID(senderID.String(), req.RecipientID)
+	log.Println("--->", senderName, req.MessageExcerpt)
+	ts := time.Now().UnixNano() / 1000
+	srv.sendFCM(senderID.String(), senderName, req.RecipientID, req.MessageExcerpt, ts, req.MessageType == 1)
 	/*
 		data, ok := srv.receiptStream.Load(recipientDeviceID.String())
 		if ok && data != nil {

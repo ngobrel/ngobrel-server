@@ -167,7 +167,7 @@ func (req *PutMessageRequest) putMessageToUserID(srv *Server, tx *sql.Tx, isGrou
 			}
 			found = true
 		}
-		if found && isGroup == false {
+		if found && isGroup == false && req.MessageType == 0 {
 			time.Sleep(100 * time.Millisecond)
 			log.Println("Updating chat_list")
 			_, err = tx.Exec(`
@@ -177,6 +177,14 @@ func (req *PutMessageRequest) putMessageToUserID(srv *Server, tx *sql.Tx, isGrou
 				log.Println(err)
 				return err
 			}
+			_, err = tx.Exec(`
+			INSERT INTO chat_list  (user_id, chat_id, created_at, updated_at, excerpt) values ($3, $2, now(), now(), $1) ON CONFLICT (user_id, chat_id) DO UPDATE SET excerpt=$1, updated_at=now()`,
+				req.MessageExcerpt, senderID.String(), recipientID.String())
+			if err != nil {
+				log.Println(err)
+				return err
+			}
+
 		}
 		if found == false {
 			log.Println("No devices found for recipient ", recipientID.String())

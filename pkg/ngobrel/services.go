@@ -31,8 +31,9 @@ import (
 )
 
 type FCMAuth struct {
-	client  *http.Client
-	expired time.Time
+	client     *http.Client
+	expired    time.Time
+	projectURL string
 }
 
 type Server struct {
@@ -73,15 +74,26 @@ func NewServer(sms Sms, minioClient minio.Client) *Server {
 		log.Fatal(err)
 		return nil
 	}
+
+	log.Println("Login to Google Firebase")
 	googleConfig, err := google.JWTConfigFromJSON(data, "https://www.googleapis.com/auth/firebase.messaging")
 	if err != nil {
+		log.Println(err)
 		log.Fatal("Unable to login to Google Firebase")
 	}
 
-	fcmAuth := FCMAuth{
-		client:  googleConfig.Client(oauth2.NoContext),
-		expired: time.Now().Add(1 * time.Hour),
+	projectURL := os.Getenv("FCM_PROJECT_URL")
+	if projectURL == "" {
+		log.Fatal("FCM_PROJECT_URL is not set")
 	}
+
+	fcmAuth := FCMAuth{
+		client:     googleConfig.Client(oauth2.NoContext),
+		expired:    time.Now().Add(1 * time.Hour),
+		projectURL: projectURL,
+	}
+
+	log.Println("Login OK", fcmAuth.client)
 
 	log.SetFlags(log.Lshortfile)
 	return &Server{

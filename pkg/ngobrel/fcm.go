@@ -83,7 +83,7 @@ func (srv *Server) sendFCM(chatID string, sender string, recipient string, excer
 		log.Println("fcm", string(str))
 		msgx := strings.NewReader(string(str))
 
-		resp, err := srv.fcmAuth.client.Post(ProjectURL, "application/json", msgx)
+		resp, err := srv.fcmAuth.client.Post(srv.fcmAuth.projectURL, "application/json", msgx)
 		if err != nil {
 			log.Println(err)
 			return

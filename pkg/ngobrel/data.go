@@ -1210,6 +1210,8 @@ func (req *GetMediaRequest) getMediaStream(srv *Server, userID uuid.UUID, stream
 		n, err := obj.Read(buffer)
 		if err != nil {
 			if err == io.EOF {
+				// Send remaining data
+				stream.Send(&GetMediaResponse{Contents: buffer[:n]})
 				break
 			}
 

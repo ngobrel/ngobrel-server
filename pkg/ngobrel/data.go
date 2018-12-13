@@ -160,7 +160,7 @@ func (req *PutMessageRequest) putMessageToUserID(srv *Server, tx *sql.Tx, isGrou
 				return err
 			}
 
-			err = req.putMessageToDeviceID(srv, tx, senderID, senderDeviceID, deviceID, now)
+			err = req.putMessageToDeviceID(srv, tx, senderID, senderDeviceID, recipientID, deviceID, now)
 			if err != nil {
 				log.Println(err)
 				return err
@@ -258,7 +258,7 @@ name as chat_name,
 	return name, nil
 }
 
-func (req *PutMessageRequest) putMessageToDeviceID(srv *Server, tx *sql.Tx, senderID uuid.UUID, senderDeviceID uuid.UUID, recipientDeviceID uuid.UUID, now float64) error {
+func (req *PutMessageRequest) putMessageToDeviceID(srv *Server, tx *sql.Tx, senderID uuid.UUID, senderDeviceID uuid.UUID, recipientID uuid.UUID, recipientDeviceID uuid.UUID, now float64) error {
 
 	time.Sleep(100 * time.Millisecond)
 	log.Println("putMessageToDeviceID: ", senderID.String(), req.MessageID, recipientDeviceID.String(), req.RecipientID)
@@ -277,7 +277,7 @@ func (req *PutMessageRequest) putMessageToDeviceID(srv *Server, tx *sql.Tx, send
 	senderName, _ := getNameFromUserID(srv, senderID.String(), req.RecipientID)
 	log.Println("--->", senderName, req.MessageExcerpt)
 	ts := time.Now().UnixNano() / 1000
-	srv.sendFCM(senderID.String(), senderName, req.RecipientID, req.MessageExcerpt, ts, req.MessageType == 1)
+	srv.sendFCM(senderID.String(), senderName, recipientID.String(), req.MessageExcerpt, ts, req.MessageType == 1)
 	/*
 		data, ok := srv.receiptStream.Load(recipientDeviceID.String())
 		if ok && data != nil {

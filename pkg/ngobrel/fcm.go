@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"strings"
-	"time"
 
 	uuid "github.com/satori/go.uuid"
 )
@@ -98,7 +97,7 @@ func (srv *Server) sendFCM(chatID string, sender string, recipient string, excer
 
 func (req *RegisterFCMRequest) RegisterFCM(srv *Server, userID uuid.UUID) (*RegisterFCMResponse, error) {
 	log.Println("Registering FCM for ", userID.String())
-	err := srv.redisClient.Set("FCM-"+userID.String(), req.FCMToken, time.Duration(24*time.Hour)).Err()
+	err := srv.redisClient.Set("FCM-"+userID.String(), req.FCMToken, 0).Err()
 
 	if err != nil {
 		log.Println("Error registering FCM token for user " + userID.String())

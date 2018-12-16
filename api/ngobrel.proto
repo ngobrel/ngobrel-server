@@ -137,6 +137,16 @@ service Ngobrel {
 //    rpc DeleteContact(DeleteContactRequest) returns (DeleteContactResponse) {};
 
     /**
+    Blocks a contact
+    */
+    rpc BlockContact(BlockContactRequest) returns (BlockContactResponse) {};
+
+    /**
+    Unblocks a contact
+    */
+    rpc UnblockContact(UnblockContactRequest) returns (UnblockContactResponse) {};
+
+    /**
     Registers a new profile
     */
     rpc CreateProfile(CreateProfileRequest) returns (CreateProfileResponse) {};
@@ -180,6 +190,22 @@ service Ngobrel {
     Acknowledges an notification
     */
     rpc AckMessageNotificationStream(AckMessageNotificationStreamRequest) returns (AckMessageNotificationStreamResponse) {};
+}
+
+message BlockContactRequest {
+    string userID = 1;
+}
+
+message BlockContactResponse {
+    string userID = 1;
+}
+
+message UnblockContactRequest {
+    string userID = 1;
+}
+
+message UnblockContactResponse {
+    string userID = 1;
 }
 
 message GetProfilePictureRequest {

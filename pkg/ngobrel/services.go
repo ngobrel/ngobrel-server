@@ -671,3 +671,24 @@ func (srv *Server) PutMessageState(ctx context.Context, in *PutMessageStateReque
 
 	return in.PutMessageState(srv, userID, senderDeviceID, nowFloat)
 }
+
+func (srv *Server) BlockContact(ctx context.Context, in *BlockContactRequest) (*BlockContactResponse, error) {
+	userID, err := getUserID(srv, ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return in.BlockContact(srv, userID)
+}
+
+func (srv *Server) UnblockContact(ctx context.Context, in *UnblockContactRequest) (*UnblockContactResponse, error) {
+	userID, err := getUserID(srv, ctx)
+
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return in.UnblockContact(srv, userID)
+}

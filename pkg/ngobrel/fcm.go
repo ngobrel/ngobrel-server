@@ -28,11 +28,12 @@ type messageContents struct {
 type dataContents struct {
 	ClickAction string `json:"click_action"`
 	ChatID      string `json:"chatID"`
+	GroupID     string `json:"groupID"`
 	RecipientID string `json:"recipientID"`
 	Timestamp   string `json:"timestamp"`
 }
 
-func (srv *Server) sendFCM(chatID string, sender string, recipient string, excerpt string, now int64, isManagement bool) {
+func (srv *Server) sendFCM(chatID string, sender string, recipientChatID string, recipient string, excerpt string, now int64, isManagement bool) {
 
 	log.Println("sendFCM", sender, excerpt, isManagement)
 	fcmToken, err := srv.redisClient.Get("FCM-" + recipient).Result()
@@ -65,6 +66,7 @@ func (srv *Server) sendFCM(chatID string, sender string, recipient string, excer
 					},
 					Data: dataContents{
 						ChatID:      chatID,
+						GroupID:     recipientChatID,
 						RecipientID: recipient,
 						ClickAction: "FLUTTER_NOTIFICATION_CLICK",
 						Timestamp:   fmt.Sprintf("%s", now),

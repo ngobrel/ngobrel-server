@@ -145,6 +145,32 @@ func (req *PutMessageRequest) putMessageToGroupMember(srv *Server, tx *sql.Tx, s
 }
 
 func (req *PutMessageRequest) putMessageToUserID(srv *Server, tx *sql.Tx, isGroup bool, senderID uuid.UUID, senderDeviceID uuid.UUID, recipientID uuid.UUID, now float64) error {
+	rows, err := srv.db.Query(`SELECT chat_type FROM chat_list WHERE user_id=$2 AND chat_id=$1`, senderID.String(), recipientID.String())
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer rows.Close()
+	blocked := false
+	for rows.Next() {
+		var chatType int
+		if err := rows.Scan(&chatType); err != nil {
+			log.Println(err)
+			return err
+		}
+
+		log.Println("Chat type is ", chatType)
+
+		// 87654321
+		// ---*---- bit #4 is set when a contact is blocked
+		blocked = (chatType)&(1<<(4)) == 16
+	}
+
+	if blocked {
+		log.Println("User is blocked")
+		return nil
+	}
+
 	if req.MessageEncrypted == false {
 		rows, err := srv.db.Query(`SELECT device_id FROM devices WHERE user_id=$1 AND device_state = 1`, recipientID.String())
 		if err != nil {
@@ -277,7 +303,7 @@ func (req *PutMessageRequest) putMessageToDeviceID(srv *Server, tx *sql.Tx, send
 	senderName, _ := getNameFromUserID(srv, senderID.String(), req.RecipientID)
 	log.Println("--->", senderName, req.MessageExcerpt)
 	ts := time.Now().UnixNano() / 1000
-	srv.sendFCM(senderID.String(), senderName, recipientID.String(), req.MessageExcerpt, ts, req.MessageType == 1)
+	srv.sendFCM(senderID.String(), senderName, req.RecipientID, recipientID.String(), req.MessageExcerpt, ts, req.MessageType == 1)
 	/*
 		data, ok := srv.receiptStream.Load(recipientDeviceID.String())
 		if ok && data != nil {
@@ -1339,5 +1365,37 @@ func (req *PutMessageStateRequest) PutMessageState(srv *Server, userID uuid.UUID
 
 	return &PutMessageStateResponse{
 		Success: true,
+	}, nil
+}
+
+func (req *BlockContactRequest) BlockContact(srv *Server, userID uuid.UUID) (*BlockContactResponse, error) {
+
+	log.Println(fmt.Sprintf("BlockContact %s %s ", userID.String(), req.UserID))
+
+	_, err := srv.db.Exec(`update chat_list set chat_type=set_bit(chat_type::int::bit(8), 3, 1)::bit(8)::int4::int2 where user_id=$1 and chat_id=$2`, userID.String(), req.UserID)
+
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return &BlockContactResponse{
+		UserID: req.UserID,
+	}, nil
+}
+
+func (req *UnblockContactRequest) UnblockContact(srv *Server, userID uuid.UUID) (*UnblockContactResponse, error) {
+
+	log.Println(fmt.Sprintf("UnblockContact %s %s ", userID.String(), req.UserID))
+
+	_, err := srv.db.Exec(`update chat_list set chat_type=set_bit(chat_type::int::bit(8), 3, 0)::bit(8)::int4::int2 where user_id=$1 and chat_id=$2`, userID.String(), req.UserID)
+
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return &UnblockContactResponse{
+		UserID: req.UserID,
 	}, nil
 }

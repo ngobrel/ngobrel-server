@@ -1399,3 +1399,20 @@ func (req *UnblockContactRequest) UnblockContact(srv *Server, userID uuid.UUID) 
 		UserID: req.UserID,
 	}, nil
 }
+
+func (req *DeleteContactRequest) DeleteContact(srv *Server, userID uuid.UUID) (*DeleteContactResponse, error) {
+
+	log.Println(fmt.Sprintf("DeleteContact %s %s ", userID.String(), req.UserID))
+
+	_, err := srv.db.Exec(`delete from contacts where user_id=$1 and chat_id=$2`, userID.String(), req.UserID)
+
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return &DeleteContactResponse{
+		Success: true,
+		Message: req.UserID,
+	}, nil
+}

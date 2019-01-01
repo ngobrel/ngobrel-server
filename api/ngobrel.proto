@@ -134,7 +134,7 @@ service Ngobrel {
     /**
     Deletes a contact from the contact list of the currently logged in user ID 
     */
-//    rpc DeleteContact(DeleteContactRequest) returns (DeleteContactResponse) {};
+    rpc DeleteContact(DeleteContactRequest) returns (DeleteContactResponse) {};
 
     /**
     Blocks a contact

@@ -692,3 +692,13 @@ func (srv *Server) UnblockContact(ctx context.Context, in *UnblockContactRequest
 
 	return in.UnblockContact(srv, userID)
 }
+
+func (srv *Server) DeleteContact(ctx context.Context, in *DeleteContactRequest) (*DeleteContactResponse, error) {
+	userID, err := getUserID(srv, ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return in.DeleteContact(srv, userID)
+}

@@ -25,20 +25,23 @@ func main() {
 	smsAccount, smsAccountExists := os.LookupEnv("SMS_ACCOUNT")
 
 	if smsAccountExists {
-		smsClient = pb.NewTwilioSms()
+		smsClient = pb.NewZenzivaSms()
 	} else {
 		smsClient = pb.NewDummySms()
 	}
 	smsClient.SetAccount(smsAccount, os.Getenv("SMS_TOKEN"))
+	smsClient.SetValue("subdomain", os.Getenv("SMS_SUBDOMAIN"))
 
 	minioClient, err := minio.New(os.Getenv("MINIO_URL"), os.Getenv("MINIO_ACCESS_KEY"), os.Getenv("MINIO_SECRET_KEY"), false)
 	if err != nil {
+		log.Println("Minio error: " + os.Getenv("MINIO_URL"))
 		log.Fatalln(err)
 	}
 
-	pb.InitDB()
 	s := grpc.NewServer()
 	server := pb.NewServer(smsClient, *minioClient)
+	server.InitDB()
+
 	pb.RegisterNgobrelServer(s, server)
 	// Register reflection service on gRPC server.
 	reflection.Register(s)

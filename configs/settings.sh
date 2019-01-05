@@ -11,7 +11,9 @@ REDIS_URL="$REDIS_HOST:$REDIS_PORT"
 
 SMS_ACCOUNT=${SMS_ACCOUNT:-twilio-account-id}
 SMS_TOKEN=${SMS_TOKEN:-twilio-token}
+FCM_CONFIG_PATH=
 
+export FCM_CONFIG_PATH
 export DB_NAME
 export DB_USER
 export DB_PASS

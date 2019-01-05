@@ -2,13 +2,20 @@ package ngobrel
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"io"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
+	"sync"
 	"time"
+
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 
 	"github.com/disintegration/imaging"
 
@@ -16,17 +23,38 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 
+	"github.com/go-redis/redis"
 	minio "github.com/minio/minio-go"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
 )
 
+type FCMAuth struct {
+	client     *http.Client
+	expired    time.Time
+	projectURL string
+}
+
 type Server struct {
-	receiptStream map[string]Ngobrel_GetMessageNotificationServer
+	receiptStream sync.Map
 	smsClient     Sms
 	minioClient   minio.Client
 	tmpDir        string
+	fcmAuth       FCMAuth
+	db            *sql.DB
+	redisClient   *redis.Client
+}
+
+type ManagementMessage struct {
+	MessageType string                          `json:"messageType"`
+	Text        string                          `json:"text"`
+	Command     ManagementReceptionStateMessage `json:"command"`
+}
+
+type ManagementReceptionStateMessage struct {
+	Type      MessageReceptionState `json:"type"`
+	MessageID int64                 `json:"messageId"`
 }
 
 func NewServer(sms Sms, minioClient minio.Client) *Server {
@@ -35,11 +63,44 @@ func NewServer(sms Sms, minioClient minio.Client) *Server {
 		log.Println("TMPDIR environment variable is not set, using /tmp as temp directory.")
 		tmpDir = "/tmp"
 	}
+
+	fcmConfigPath := os.Getenv("FCM_CONFIG_PATH")
+	if fcmConfigPath == "" {
+		log.Fatal("FCM_CONFIG_PATH is not set")
+	}
+
+	data, err := ioutil.ReadFile(fcmConfigPath)
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+
+	log.Println("Login to Google Firebase")
+	googleConfig, err := google.JWTConfigFromJSON(data, "https://www.googleapis.com/auth/firebase.messaging")
+	if err != nil {
+		log.Println(err)
+		log.Fatal("Unable to login to Google Firebase")
+	}
+
+	projectURL := os.Getenv("FCM_PROJECT_URL")
+	if projectURL == "" {
+		log.Fatal("FCM_PROJECT_URL is not set")
+	}
+
+	fcmAuth := FCMAuth{
+		client:     googleConfig.Client(oauth2.NoContext),
+		expired:    time.Now().Add(1 * time.Hour),
+		projectURL: projectURL,
+	}
+
+	log.Println("Login OK", fcmAuth.client)
+
+	log.SetFlags(log.Lshortfile)
 	return &Server{
-		receiptStream: make(map[string]Ngobrel_GetMessageNotificationServer),
-		smsClient:     sms,
-		minioClient:   minioClient,
-		tmpDir:        tmpDir,
+		smsClient:   sms,
+		minioClient: minioClient,
+		tmpDir:      tmpDir,
+		fcmAuth:     fcmAuth,
 	}
 }
 
@@ -71,28 +132,34 @@ func getToken(ctx context.Context) (string, error) {
 	return idList[0], nil
 }
 
-func getDeviceID(ctx context.Context) (uuid.UUID, error) {
+func getDeviceID(srv *Server, ctx context.Context) (uuid.UUID, error) {
 	token, err := getToken(ctx)
 	if err != nil {
 		return uuid.Nil, err
 	}
 
-	id, err := getDeviceIDFromToken(token)
+	id, err := getDeviceIDFromToken(srv, token)
+	if err != nil {
+		return uuid.Nil, err
+	}
 	return uuid.FromString(id)
 }
 
-func getUserID(ctx context.Context) (uuid.UUID, error) {
+func getUserID(srv *Server, ctx context.Context) (uuid.UUID, error) {
 	token, err := getToken(ctx)
 	if err != nil {
 		return uuid.Nil, err
 	}
 
-	id, err := getUserIDFromToken(token)
+	id, err := getUserIDFromToken(srv, token)
+	if err != nil {
+		return uuid.Nil, err
+	}
 	return uuid.FromString(id)
 }
 
 func (srv *Server) GetMessageNotification(in *GetMessagesRequest, stream Ngobrel_GetMessageNotificationServer) error {
-	recipientDeviceID, err := getDeviceID(stream.Context())
+	recipientDeviceID, err := getDeviceID(srv, stream.Context())
 	if err != nil {
 		return err
 	}
@@ -101,21 +168,21 @@ func (srv *Server) GetMessageNotification(in *GetMessagesRequest, stream Ngobrel
 }
 
 func (srv *Server) GetMessages(in *GetMessagesRequest, stream Ngobrel_GetMessagesServer) error {
-	recipientDeviceID, err := getDeviceID(stream.Context())
+	recipientDeviceID, err := getDeviceID(srv, stream.Context())
 	if err != nil {
 		return err
 	}
 
-	return in.getMessages(recipientDeviceID, stream)
+	return in.getMessages(srv, recipientDeviceID, stream)
 }
 
 func (srv *Server) PutMessage(ctx context.Context, in *PutMessageRequest) (*PutMessageResponse, error) {
 
-	senderID, err := getUserID(ctx)
+	senderID, err := getUserID(srv, ctx)
 	if err != nil {
 		return nil, err
 	}
-	senderDeviceID, err := getDeviceID(ctx)
+	senderDeviceID, err := getDeviceID(srv, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -138,39 +205,39 @@ func (srv *Server) PutMessage(ctx context.Context, in *PutMessageRequest) (*PutM
 }
 
 func (srv *Server) CreateConversation(ctx context.Context, in *CreateConversationRequest) (*CreateConversationResponse, error) {
-	userID, err := getUserID(ctx)
+	userID, err := getUserID(srv, ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return in.CreateConversation(userID)
+	return in.CreateConversation(srv, userID)
 }
 
 func (srv *Server) ListConversations(ctx context.Context, in *ListConversationsRequest) (*ListConversationsResponse, error) {
-	userID, err := getUserID(ctx)
+	userID, err := getUserID(srv, ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return in.ListConversations(userID)
+	return in.ListConversations(srv, userID)
 }
 
 func (srv *Server) GetContacts(ctx context.Context, in *GetContactsRequest) (*GetContactsResponse, error) {
-	userID, err := getUserID(ctx)
+	userID, err := getUserID(srv, ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return in.GetContacts(userID)
+	return in.GetContacts(srv, userID)
 }
 
 func (srv *Server) UpdateConversation(ctx context.Context, in *UpdateConversationRequest) (*UpdateConversationResponse, error) {
-	userID, err := getUserID(ctx)
+	userID, err := getUserID(srv, ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return in.UpdateConversation(userID)
+	return in.UpdateConversation(srv, userID)
 }
 
 func (srv *Server) CreateProfile(ctx context.Context, in *CreateProfileRequest) (*CreateProfileResponse, error) {
@@ -178,37 +245,37 @@ func (srv *Server) CreateProfile(ctx context.Context, in *CreateProfileRequest) 
 }
 
 func (srv *Server) EditProfile(ctx context.Context, in *EditProfileRequest) (*EditProfileResponse, error) {
-	userID, err := getUserID(ctx)
+	userID, err := getUserID(srv, ctx)
 	if err != nil {
 		return nil, err
 	}
-	return in.EditProfile(userID)
+	return in.EditProfile(srv, userID)
 }
 
 func (srv *Server) GetProfile(ctx context.Context, in *GetProfileRequest) (*GetProfileResponse, error) {
-	userID, err := getUserID(ctx)
+	userID, err := getUserID(srv, ctx)
 	if err != nil {
 		return nil, err
 	}
-	return in.GetProfile(userID)
+	return in.GetProfile(srv, userID)
 }
 
 func (srv *Server) PutContact(ctx context.Context, in *PutContactRequest) (*PutContactResponse, error) {
-	userID, err := getUserID(ctx)
+	userID, err := getUserID(srv, ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return in.PutContact(userID)
+	return in.PutContact(srv, userID)
 }
 
 func (srv *Server) CreateGroupConversation(ctx context.Context, in *CreateGroupConversationRequest) (*CreateGroupConversationResponse, error) {
-	userID, err := getUserID(ctx)
+	userID, err := getUserID(srv, ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	ret, err := in.CreateGroupConversation(userID)
+	ret, err := in.CreateGroupConversation(srv, userID)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -223,20 +290,20 @@ func (srv *Server) CreateGroupConversation(ctx context.Context, in *CreateGroupC
 
 func (srv *Server) VerifyOTP(ctx context.Context, in *VerifyOTPRequest) (*VerifyOTPResponse, error) {
 
-	return in.VerifyOTP()
+	return in.VerifyOTP(srv)
 }
 
 func (srv *Server) ListGroupParticipants(ctx context.Context, in *ListGroupParticipantsRequest) (*ListGroupParticipantsResponse, error) {
-	userID, err := getUserID(ctx)
+	userID, err := getUserID(srv, ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return in.ListGroupParticipants(userID)
+	return in.ListGroupParticipants(srv, userID)
 }
 
 func (srv *Server) RemoveAdminRole(ctx context.Context, in *RemoveAdminRoleRequest) (*RemoveAdminRoleResponse, error) {
-	userID, err := getUserID(ctx)
+	userID, err := getUserID(srv, ctx)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -247,11 +314,11 @@ func (srv *Server) RemoveAdminRole(ctx context.Context, in *RemoveAdminRoleReque
 		return nil, err
 	}
 
-	return in.RemoveAdminRole(userID)
+	return in.RemoveAdminRole(srv, userID)
 }
 
 func (srv *Server) RemoveFromGroup(ctx context.Context, in *RemoveFromGroupRequest) (*RemoveFromGroupResponse, error) {
-	userID, err := getUserID(ctx)
+	userID, err := getUserID(srv, ctx)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -262,37 +329,37 @@ func (srv *Server) RemoveFromGroup(ctx context.Context, in *RemoveFromGroupReque
 		return nil, err
 	}
 
-	return in.RemoveFromGroup(userID)
+	return in.RemoveFromGroup(srv, userID)
 }
 
 func (srv *Server) AddToGroup(ctx context.Context, in *AddToGroupRequest) (*AddToGroupResponse, error) {
-	userID, err := getUserID(ctx)
+	userID, err := getUserID(srv, ctx)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	return in.AddToGroup(userID)
+	return in.AddToGroup(srv, userID)
 }
 
 func (srv *Server) ExitFromGroup(ctx context.Context, in *ExitFromGroupRequest) (*ExitFromGroupResponse, error) {
-	userID, err := getUserID(ctx)
+	userID, err := getUserID(srv, ctx)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	return in.ExitFromGroup(userID)
+	return in.ExitFromGroup(srv, userID)
 }
 
 func (srv *Server) RenameGroup(ctx context.Context, in *RenameGroupRequest) (*RenameGroupResponse, error) {
-	userID, err := getUserID(ctx)
+	userID, err := getUserID(srv, ctx)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 
-	return in.RenameGroup(userID)
+	return in.RenameGroup(srv, userID)
 }
 
 func (srv *Server) Echo(ctx context.Context, in *EchoRequest) (*EchoResponse, error) {
@@ -314,7 +381,7 @@ func getRandomID() string {
 
 func (srv *Server) UploadProfilePicture(stream Ngobrel_UploadProfilePictureServer) error {
 
-	userID, err := getUserID(stream.Context())
+	userID, err := getUserID(srv, stream.Context())
 	if err != nil {
 		log.Println(err)
 		return err
@@ -387,7 +454,7 @@ func (srv *Server) UploadProfilePicture(stream Ngobrel_UploadProfilePictureServe
 	imaging.Encode(&b, src, imaging.PNG)
 
 	os.Remove(tmpFileName)
-	err = uploadProfilePicture(userID, mediaID, b.Bytes(), fileSize)
+	err = uploadProfilePicture(srv, userID, mediaID, b.Bytes(), fileSize)
 	if err != nil {
 		log.Println(err)
 		stream.SendAndClose(nil)
@@ -403,7 +470,7 @@ func (srv *Server) UploadProfilePicture(stream Ngobrel_UploadProfilePictureServe
 
 func (srv *Server) UploadMedia(stream Ngobrel_UploadMediaServer) error {
 
-	userID, err := getUserID(stream.Context())
+	userID, err := getUserID(srv, stream.Context())
 	if err != nil {
 		log.Println(err)
 		return err
@@ -474,7 +541,7 @@ func (srv *Server) UploadMedia(stream Ngobrel_UploadMediaServer) error {
 
 	os.Remove(tmpFileName)
 
-	err = uploadMedia(userID, mediaID, isEncrypted, fileName, contentType, fileSize)
+	err = uploadMedia(srv, userID, mediaID, isEncrypted, fileName, contentType, fileSize)
 	if err != nil {
 		log.Println(err)
 		stream.SendAndClose(nil)
@@ -544,15 +611,94 @@ func (srv *Server) PrepareMediaForGroup(userID uuid.UUID, groupID, mediaID strin
 
 	defer os.Remove(tmpFileName)
 
-	return updateGroupAvatar(userID, groupID, mediaID, b.Bytes())
+	return updateGroupAvatar(srv, userID, groupID, mediaID, b.Bytes())
 }
 
 func (srv *Server) GetProfilePicture(in *GetProfilePictureRequest, stream Ngobrel_GetProfilePictureServer) error {
-	userID, err := getUserID(stream.Context())
+	userID, err := getUserID(srv, stream.Context())
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 
 	return in.getProfilePictureStream(srv, userID, stream)
+}
+
+func (srv *Server) GetMedia(in *GetMediaRequest, stream Ngobrel_GetMediaServer) error {
+	userID, err := getUserID(srv, stream.Context())
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return in.getMediaStream(srv, userID, stream)
+}
+
+func (srv *Server) RegisterFCM(ctx context.Context, in *RegisterFCMRequest) (*RegisterFCMResponse, error) {
+	userID, err := getUserID(srv, ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return in.RegisterFCM(srv, userID)
+}
+
+func (srv *Server) AckMessageNotificationStream(ctx context.Context, in *AckMessageNotificationStreamRequest) (*AckMessageNotificationStreamResponse, error) {
+	userID, err := getUserID(srv, ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return in.AckMessageNotificationStream(userID)
+}
+
+func (srv *Server) PutMessageState(ctx context.Context, in *PutMessageStateRequest) (*PutMessageStateResponse, error) {
+	userID, err := getUserID(srv, ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	senderDeviceID, err := getDeviceID(srv, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now().UnixNano() / 1000.0 // in microsecs
+	nowFloat := float64(now) / 1000000.0  // in secs
+
+	return in.PutMessageState(srv, userID, senderDeviceID, nowFloat)
+}
+
+func (srv *Server) BlockContact(ctx context.Context, in *BlockContactRequest) (*BlockContactResponse, error) {
+	userID, err := getUserID(srv, ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return in.BlockContact(srv, userID)
+}
+
+func (srv *Server) UnblockContact(ctx context.Context, in *UnblockContactRequest) (*UnblockContactResponse, error) {
+	userID, err := getUserID(srv, ctx)
+
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return in.UnblockContact(srv, userID)
+}
+
+func (srv *Server) DeleteContact(ctx context.Context, in *DeleteContactRequest) (*DeleteContactResponse, error) {
+	userID, err := getUserID(srv, ctx)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return in.DeleteContact(srv, userID)
 }

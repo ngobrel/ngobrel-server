@@ -1,13 +1,31 @@
 syntax = "proto3";
 option go_package = "ngobrel";
 /*
-Ngobrel service
+# Ngobrel service
+
+To use Ngobrel service, a user need to have a device. Each user must have at least one device and could have more than one devices.
+Prior using the service, a device must perform an authentication step.
+All requests are considered successful unless an exception is thrown.
+Downloaded conversations are not kept, and will be gone after they are downloaded.
+
 Functions prefixed with Public are public methods. All protected methods will have the following variables exposed
 through metadata:
 
-  string myUserID, the UUID string of currently login userID
-  string myDeviceID, the UUID string of currently login deviceID
+ * `string myUserID`, the UUID string of currently login `userID`
+ * `string myDeviceID`, the UUID string of currently login `deviceID`
 
+## Authentication process
+
+Authentication is performed by using `CreateProfile` API. Ngobrel will send an OTP to the phone number.
+Client is responsible to send OTP verification by using `VerifyOTP` API. The token received from this API can then 
+used for all subsequence calls by putting it in metadata under key of `token`.
+
+## Sending messages
+To send a message to a particular username, use `putMessage` API.
+
+## Receiving messages
+To get a message for a particular dvice, use `getMessages` API.
+ 
   */
 service Ngobrel {
 
@@ -193,39 +211,49 @@ service Ngobrel {
 }
 
 message BlockContactRequest {
-    string userID = 1;
+    // The userID to be blocked
+    string userID = 1; 
 }
 
 message BlockContactResponse {
-    string userID = 1;
+    // The userID that has been blocked
+    string userID = 1; 
 }
 
 message UnblockContactRequest {
+    // The userID to be unblocked
     string userID = 1;
 }
 
 message UnblockContactResponse {
+    // The userID that has been unblocked
     string userID = 1;
 }
 
 message GetProfilePictureRequest {
+    // THe userID of the user
     string userID = 1;
 }
 
 message GetProfilePictureResponse {
+    // The image of the profile picture
     bytes contents = 1;
 }
 
 message EchoRequest {
+    // Echo message
     string message = 1;
 }
 
 message EchoResponse {
+    // Echo reply
     string reply = 1;
 }
 
 message RenameGroupRequest {
+    // The `groupID` to be renamed
     string groupID = 1;
+    // The newName of the group
     string newName = 2;
 }
 
@@ -234,6 +262,7 @@ message RenameGroupResponse {
 }
 
 message ExitFromGroupRequest {
+    // The `groupID` to exit from
     string groupID = 1;
 }
 
@@ -242,7 +271,9 @@ message ExitFromGroupResponse {
 }
 
 message RemoveAdminRoleRequest {
+    // The `groupID` of the user to be stripped from
     string groupID = 1;
+    // The userID to be stripped from
     string userID = 2;
 }
 
@@ -251,7 +282,9 @@ message RemoveAdminRoleResponse {
 }
 
 message RemoveFromGroupRequest {
+    // The groupID of the user to be removed from
     string groupID = 1;
+    // The userID to be removed from
     string userID = 2;
 }
 
@@ -260,37 +293,51 @@ message RemoveFromGroupResponse {
 }
 
 message ListGroupParticipantsRequest {
+    // The groupID of the participants
     string groupID = 1;
 }
 
 message ListGroupParticipantsResponse {
+    // The participants list
     repeated GroupParticipant participants = 1; 
 }
 
 message VerifyOTPRequest {
+    // The phone number
     string phoneNumber = 1;
+    // The OTP
     string OTP = 2;
+    // The device ID 
     string deviceID = 3;
 }
 
 message VerifyOTPResponse {
+    // The authentication token
     string token = 1;
 }
 
 message CreateProfileRequest {
+    // The device ID of the user
     string deviceID = 1;
+    // The phoneNumber
     string phoneNumber = 2;
 }
 
 message CreateProfileResponse {
+    // The generated userID
     string userID = 1;
+    // The OTP string. This is only passed in DEBUG mode
     string otpDebug = 2;
 }
 
 message EditProfileRequest {
+    // The full name of the user
     string name = 1;
+    // The username of the user
     string userName = 2;
+    // Arbitrary data in JSON
     string customData = 3;
+    // Avatar media ID
     string avatarMediaId = 4;
 }
 
@@ -304,10 +351,16 @@ message GetProfileRequest {
 }
 
 message GetProfileResponse {
+    // The full name
     string name = 1;
+    // The user name
     string userName = 2;
+
+    // The phone number
     string phoneNumber = 3;
+    // The custom data
     string customData = 4;
+    // The media ID of the user
     string avatarMediaId = 5;
 }
 
@@ -320,17 +373,29 @@ message ListConversationsResponse {
 
 
 message Conversations {
+    // The userID of the peer (or the group ID if it is a group conversation)
     string chatID = 1;
+    // The chat name
     string chatName = 2;
+    // The last excerpt of the conversation
     string excerpt = 3;
+    // The timestamp of last message
     int64 timestamp = 4;
+    // The notification setting
     int64 notification = 5;
+    // The chat type, 0 for peer-to-peer and 1 for group conversation
     int32 chatType = 6;
+    // True if current user is the group admin of this conversation (if it is a group conversation)
     bool isGroupAdmin = 7;
+    // The avatar of a conversation
     string avatar = 8;
+    // The image of the avatar thumbnail
     bytes avatarThumbnail = 9;
+    // The phonenumber of this conversation (if it is peer-to-peer)
     string phoneNumber = 10;
+    // The username of this conversation (if it is peer-to-peer)
     string userName = 11;
+    // The custom data of this conversation (if it is peer-to-peer)
     string customData = 12;
 }
 
@@ -363,17 +428,26 @@ message GetContactsResponse {
 }
 
 message Contacts {
+    // The user ID of the peer
     string peerID = 1;
+    // The name of the contact
     string name = 2;
+    // The settings of the notification
     int64 notification = 3;
+    // The image of the thumbnail of the avatar
     bytes avatar_thumbnail = 4;
+    // The phone number of the peer
     string phoneNumber = 5;
+    // The username of the peer
     string userName = 6;
+    // The customData of the peer
     string customData = 7;
 }
 
 message PutContactRequest {
+    // The phone number
     string phoneNumber = 1;
+    // The contact data
     Contacts contactData = 2;
 }
 
@@ -398,12 +472,16 @@ message GetMessageReceptionStateResponse {
 }
 
 enum MessageState {
+    // Normal message
     Normal = 0;
+    // The message has been retracted
     Retracted = 1;
 }
 
 message GetMessageStateRequest {
+    // The peer ID 
     string userID = 1;
+    // The message ID
     string messageID = 2;
 }
 
@@ -412,15 +490,22 @@ message GetMessageStateResponse {
 }
 
 enum MessageReceptionState {
+    // Draft state, it is not yet sent to Ngobrel
     Draft = 0;
+    // Sent state, it should be set by the client when sending the message
     Sent = 1;
+    // Received state, it is set by Ngobrel 
     Received = 2;
+    // Read state, it is set by the recipient
     Read = 3;
 }
 
 message PutMessageStateRequest {
+    // The messageID
     int64 messageID = 1;
+    // The new status of the message
     MessageReceptionState status = 2;
+    // The chatID of the message (or the recipientID if it is not a group conversation)
     string chatID = 3;
 }
 
@@ -439,8 +524,11 @@ message PutMessageReceptionStateResponse {
 } 
 
 message CreateConversationRequest {
+    // The userID to be invited to
     string userID = 1;
+    // The chatID of the chat
     string chatID = 2;
+    // The type of the conversation
     ConversationType type = 3;
 }
 
@@ -468,9 +556,13 @@ message  AddToGroupResponse {
 }
 
 message UploadMediaRequest {
+    // The file name
     string fileName = 1;
+    // The content type of the media
     string contentType = 2;
+    // The indicator whether it is encrypted
     bool isEncrypted = 3;
+    // The actual contents
     bytes contents = 4;
 }
 
@@ -515,27 +607,44 @@ message AckMessageNotificationStreamResponse {
 }
 
 message GetMessagesResponseItem {
+    // The recipient ID
     string  recipientID         = 1;
+    // The sender ID
     string  senderID            = 2;
+    // The sender device ID
     string  senderDeviceID      = 3;
+    // The message ID provided by Ngobrel
     int64   messageID           = 4;
+    // The timestamp provided by Ngobrel
     int64   messageTimestamp    = 5;
+    // The contents of the message
     string  messageContents     = 6;
+    // The encrypted 
     bool    messageEncrypted    = 7;
 }
 
 message PutMessageResponse {
+    // The new message ID
     int64 messageID = 1;
+    // The new timestamp
     int64 messageTimestamp = 2;
 }
 
 message PutMessageRequest {
+    // The recipientID
     string  recipientID         = 1;
+    // The messageID. This is an epoch in microseconds. This will be modified by Ngobrel to create a unified messageID
     int64   messageID           = 2;
+    // The timestamp
     int64   messageTimestamp    = 3;
+    // The message contents
     string  messageContents     = 4;
+    // The encrypted indicator
     bool    messageEncrypted    = 5;
+    // The excerpt of the message
     string  messageExcerpt      = 6;
+
+    // The messageType
     int64   messageType         = 7;
 }
 
@@ -557,13 +666,21 @@ message PutKeysResponse {
 }
 
 message GroupParticipant {
+    // The userID
     string userID = 1;
+    // The name of the participant
     string name = 2;
+    // The phone number of the participant
     string phoneNumber = 3;
+    // The username of the participant
     string user_name = 4;
+    // The custom data in JSON
     string customData = 5;
+    // The indicator whether the participant is administrator
     bool isAdmin = 6;
+    // The avatar mediaID
     string avatar = 7;
+    // The thumbnail of the avatar
     bytes avatarThumbnail = 8;
 }
 message CreateGroupConversationRequest {
